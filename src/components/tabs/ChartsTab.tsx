@@ -3,6 +3,7 @@ import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area,
 } from 'recharts';
+import { ArrowLeft } from 'lucide-react';
 import type { ParsedFiling, TimeFrame } from '@/types/filing';
 import { getDayKey, getDayName, getWeekKey } from '@/utils/dateUtils';
 import { CHART_COLORS, TOPIC_COLORS } from '@/utils/sentimentUtils';
@@ -16,7 +17,6 @@ interface ChartsTabProps {
 
 type ChartMode = 'bar' | 'line';
 
-// Custom tick for daily mode showing day name below date
 function DailyTick({ x, y, payload, timeframe }: any) {
   if (timeframe !== 'daily') {
     return (
@@ -42,6 +42,7 @@ function DailyTick({ x, y, payload, timeframe }: any) {
 
 export function ChartsTab({ filings, timeframe, onTopicFilter }: ChartsTabProps) {
   const [chartMode, setChartMode] = useState<ChartMode>('bar');
+  const [drilldownTopic, setDrilldownTopic] = useState<string | null>(null);
 
   const timelineData = useMemo(() => {
     const map = new Map<string, { name: string; displayName: string; Positive: number; Negative: number; Neutral: number; sortKey: number }>();
@@ -73,6 +74,20 @@ export function ChartsTab({ filings, timeframe, onTopicFilter }: ChartsTabProps)
       .slice(0, 10)
       .map(([name, count]) => ({ name: name.length > 30 ? name.slice(0, 30) + '…' : name, fullName: name, count }));
   }, [filings]);
+
+  // Subtopic drilldown data
+  const subtopicData = useMemo(() => {
+    if (!drilldownTopic) return [];
+    const map = new Map<string, number>();
+    filings.forEach(f => {
+      if (f.AI_Topic !== drilldownTopic || !f.AI_Subtopic) return;
+      map.set(f.AI_Subtopic, (map.get(f.AI_Subtopic) || 0) + 1);
+    });
+    return Array.from(map.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([name, count]) => ({ name: name.length > 30 ? name.slice(0, 30) + '…' : name, fullName: name, count }));
+  }, [filings, drilldownTopic]);
 
   const donutData = useMemo(() => {
     let pos = 0, neg = 0, neu = 0;
@@ -107,12 +122,21 @@ export function ChartsTab({ filings, timeframe, onTopicFilter }: ChartsTabProps)
     labelStyle: { color: 'hsl(220 13% 18%)' },
   };
 
-  // Custom tooltip for sentiment timeline to show clean labels
   const timelineTooltipFormatter = (value: number, name: string) => [value, name];
   const timelineLabelFormatter = (label: string) => {
     if (typeof label === 'string' && label.includes('|')) return label.split('|')[0];
     return label;
   };
+
+  const handleTopicClick = (d: any) => {
+    setDrilldownTopic(d.fullName);
+  };
+
+  const isShowingSubtopics = drilldownTopic !== null;
+  const distributionData = isShowingSubtopics ? subtopicData : topicData;
+  const distributionTitle = isShowingSubtopics
+    ? `Subtopics: ${drilldownTopic!.length > 25 ? drilldownTopic!.slice(0, 25) + '…' : drilldownTopic}`
+    : 'Topic Distribution';
 
   return (
     <div className="mx-auto max-w-[1200px] grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -143,13 +167,7 @@ export function ChartsTab({ filings, timeframe, onTopicFilter }: ChartsTabProps)
         <ResponsiveContainer width="100%" height={280}>
           {chartMode === 'bar' ? (
             <BarChart data={timelineData}>
-              <XAxis
-                dataKey="name"
-                tick={(props) => <DailyTick {...props} timeframe={timeframe} />}
-                axisLine={false}
-                tickLine={false}
-                height={timeframe === 'daily' ? 40 : 25}
-              />
+              <XAxis dataKey="name" tick={(props) => <DailyTick {...props} timeframe={timeframe} />} axisLine={false} tickLine={false} height={timeframe === 'daily' ? 40 : 25} />
               <YAxis tick={{ fontSize: 11, fill: 'hsl(220 9% 46%)' }} axisLine={false} tickLine={false} />
               <Tooltip {...tooltipStyle} formatter={timelineTooltipFormatter} labelFormatter={timelineLabelFormatter} />
               <Legend wrapperStyle={{ fontSize: '11px' }} />
@@ -159,13 +177,7 @@ export function ChartsTab({ filings, timeframe, onTopicFilter }: ChartsTabProps)
             </BarChart>
           ) : (
             <LineChart data={timelineData}>
-              <XAxis
-                dataKey="name"
-                tick={(props) => <DailyTick {...props} timeframe={timeframe} />}
-                axisLine={false}
-                tickLine={false}
-                height={timeframe === 'daily' ? 40 : 25}
-              />
+              <XAxis dataKey="name" tick={(props) => <DailyTick {...props} timeframe={timeframe} />} axisLine={false} tickLine={false} height={timeframe === 'daily' ? 40 : 25} />
               <YAxis tick={{ fontSize: 11, fill: 'hsl(220 9% 46%)' }} axisLine={false} tickLine={false} />
               <Tooltip {...tooltipStyle} formatter={timelineTooltipFormatter} labelFormatter={timelineLabelFormatter} />
               <Legend wrapperStyle={{ fontSize: '11px' }} />
@@ -177,21 +189,40 @@ export function ChartsTab({ filings, timeframe, onTopicFilter }: ChartsTabProps)
         </ResponsiveContainer>
       </div>
 
-      {/* Topic Distribution */}
+      {/* Topic / Subtopic Distribution */}
       <div className="rounded-lg border border-border bg-card p-4 card-shadow">
-        <h3 className="mb-3 text-sm font-semibold text-foreground">Topic Distribution</h3>
+        <div className="mb-3 flex items-center gap-2">
+          {isShowingSubtopics && (
+            <button
+              onClick={() => setDrilldownTopic(null)}
+              className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors"
+              aria-label="Back to topics"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+            </button>
+          )}
+          <h3 className="text-sm font-semibold text-foreground">{distributionTitle}</h3>
+        </div>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={topicData} layout="vertical" margin={{ left: 20 }}>
+          <BarChart data={distributionData} layout="vertical" margin={{ left: 20 }}>
             <XAxis type="number" tick={{ fontSize: 11, fill: 'hsl(220 9% 46%)' }} axisLine={false} tickLine={false} />
             <YAxis dataKey="name" type="category" width={150} tick={{ fontSize: 10, fill: 'hsl(220 9% 46%)' }} axisLine={false} tickLine={false} />
             <Tooltip {...tooltipStyle} />
-            <Bar dataKey="count" radius={[0, 4, 4, 0]} cursor="pointer" onClick={(d) => onTopicFilter(d.fullName)}>
-              {topicData.map((_, i) => (
+            <Bar
+              dataKey="count"
+              radius={[0, 4, 4, 0]}
+              cursor="pointer"
+              onClick={(d) => isShowingSubtopics ? onTopicFilter(drilldownTopic!) : handleTopicClick(d)}
+            >
+              {distributionData.map((_, i) => (
                 <Cell key={i} fill={TOPIC_COLORS[i % TOPIC_COLORS.length]} />
               ))}
             </Bar>
           </BarChart>
         </ResponsiveContainer>
+        {!isShowingSubtopics && (
+          <p className="mt-1 text-[10px] text-muted-foreground text-center">Click a topic to see subtopics</p>
+        )}
       </div>
 
       {/* Sentiment Donut */}

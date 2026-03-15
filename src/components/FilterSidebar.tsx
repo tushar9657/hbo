@@ -30,9 +30,15 @@ interface SidebarProps {
   onTimeframe: (t: TimeFrame) => void;
   activeFilterCount: number;
   onClearAll: () => void;
+  searchSuggestions: string[];
 }
 
-const SENTIMENTS: (Sentiment | 'All')[] = ['All', 'Positive', 'Negative', 'Neutral'];
+const SENTIMENT_BUTTONS: { value: Sentiment | 'All'; label: string; activeClass: string }[] = [
+  { value: 'All', label: 'All', activeClass: 'bg-primary text-primary-foreground' },
+  { value: 'Positive', label: 'Pos', activeClass: 'bg-sentiment-pos/15 text-sentiment-pos border border-sentiment-pos-border' },
+  { value: 'Negative', label: 'Neg', activeClass: 'bg-sentiment-neg/15 text-sentiment-neg border border-sentiment-neg-border' },
+  { value: 'Neutral', label: 'Neu', activeClass: 'bg-sentiment-neu/15 text-sentiment-neu border border-sentiment-neu-border' },
+];
 
 export function FilterSidebar({
   open, sentiment, onSentiment, search, onSearch,
@@ -40,11 +46,47 @@ export function FilterSidebar({
   selectedSubtopics, onSubtopics, subtopics,
   dateFrom, onDateFrom, dateTo, onDateTo, dateRange,
   timeframe, onTimeframe, activeFilterCount, onClearAll,
+  searchSuggestions,
 }: SidebarProps) {
   const minTime = dateRange.min?.getTime() ?? 0;
   const maxTime = dateRange.max?.getTime() ?? 0;
   const fromTime = dateFrom?.getTime() ?? minTime;
   const toTime = dateTo?.getTime() ?? maxTime;
+
+  // Debounced search
+  const [localSearch, setLocalSearch] = useState(search);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => { setLocalSearch(search); }, [search]);
+
+  const handleSearchChange = useCallback((val: string) => {
+    setLocalSearch(val);
+    setShowSuggestions(val.length > 0);
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => onSearch(val), 250);
+  }, [onSearch]);
+
+  const handleSuggestionClick = useCallback((suggestion: string) => {
+    setLocalSearch(suggestion);
+    setShowSuggestions(false);
+    onSearch(suggestion);
+  }, [onSearch]);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) setShowSuggestions(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const filteredSuggestions = useMemo(() => {
+    if (!localSearch) return [];
+    const q = localSearch.toLowerCase();
+    return searchSuggestions.filter(s => s.toLowerCase().includes(q)).slice(0, 8);
+  }, [localSearch, searchSuggestions]);
 
   const handleSliderChange = useCallback((values: number[]) => {
     const newFrom = new Date(values[0]);
@@ -58,7 +100,7 @@ export function FilterSidebar({
   if (!open) return null;
 
   return (
-    <aside className="w-[280px] shrink-0 border-r border-border bg-card p-4 overflow-y-auto">
+    <aside className="w-[280px] shrink-0 border-r border-border bg-card p-4 overflow-y-auto sticky top-[57px] h-[calc(100vh-57px)] self-start">
       <div className="flex items-center justify-between mb-5">
         <h2 className="font-sans text-sm font-semibold text-foreground">Filters</h2>
         {activeFilterCount > 0 && (
@@ -89,32 +131,46 @@ export function FilterSidebar({
 
       <FilterSection label="Sentiment">
         <div className="flex flex-wrap gap-1.5">
-          {SENTIMENTS.map(s => (
+          {SENTIMENT_BUTTONS.map(s => (
             <button
-              key={s}
-              onClick={() => onSentiment(s)}
+              key={s.value}
+              onClick={() => onSentiment(s.value)}
               className={cn(
                 'rounded-full px-3 py-1 text-xs font-medium transition-all',
-                sentiment === s
-                  ? 'bg-primary text-primary-foreground shadow-sm'
+                sentiment === s.value
+                  ? s.activeClass
                   : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-accent'
               )}
             >
-              {s}
+              {s.label}
             </button>
           ))}
         </div>
       </FilterSection>
 
       <FilterSection label="Search">
-        <div className="relative">
+        <div className="relative" ref={searchRef}>
           <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
           <Input
             placeholder="Ticker or keyword..."
-            value={search}
-            onChange={e => onSearch(e.target.value)}
+            value={localSearch}
+            onChange={e => handleSearchChange(e.target.value)}
+            onFocus={() => localSearch && setShowSuggestions(true)}
             className="h-9 pl-8 text-xs bg-muted/50 border-border"
           />
+          {showSuggestions && filteredSuggestions.length > 0 && (
+            <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-card shadow-lg max-h-[200px] overflow-y-auto">
+              {filteredSuggestions.map(s => (
+                <button
+                  key={s}
+                  onClick={() => handleSuggestionClick(s)}
+                  className="flex w-full items-center px-3 py-1.5 text-xs hover:bg-muted transition-colors text-left text-foreground"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </FilterSection>
 
@@ -187,6 +243,8 @@ function MultiSelect({ options, selected, onChange, placeholder }: {
     onChange(selected.includes(item) ? selected.filter(s => s !== item) : [...selected, item]);
   };
 
+  const isAll = selected.length === 0;
+
   return (
     <div ref={ref} className="relative">
       <button
@@ -203,7 +261,7 @@ function MultiSelect({ options, selected, onChange, placeholder }: {
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-card shadow-lg max-h-[200px] overflow-hidden">
+        <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-card shadow-lg max-h-[240px] overflow-hidden">
           <div className="p-1.5">
             <Input
               placeholder="Search..."
@@ -213,7 +271,22 @@ function MultiSelect({ options, selected, onChange, placeholder }: {
               autoFocus
             />
           </div>
-          <div className="overflow-y-auto max-h-[150px] p-1">
+          <div className="overflow-y-auto max-h-[190px] p-1">
+            {/* All option */}
+            <button
+              onClick={() => onChange([])}
+              className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-xs hover:bg-muted transition-colors text-left font-medium"
+            >
+              <div className={cn(
+                'flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border',
+                isAll
+                  ? 'bg-primary border-primary text-primary-foreground'
+                  : 'border-border'
+              )}>
+                {isAll && <Check className="h-2.5 w-2.5" />}
+              </div>
+              <span>All</span>
+            </button>
             {filtered.length === 0 && (
               <p className="px-2 py-1.5 text-xs text-muted-foreground">No results</p>
             )}
