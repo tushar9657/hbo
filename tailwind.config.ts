@@ -13,6 +13,10 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        mono: ["IBM Plex Mono", "monospace"],
+        sans: ["IBM Plex Sans", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -57,6 +61,23 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        surface: {
+          "0": "hsl(var(--surface-0))",
+          "1": "hsl(var(--surface-1))",
+          "2": "hsl(var(--surface-2))",
+          "3": "hsl(var(--surface-3))",
+        },
+        sentiment: {
+          pos: "hsl(var(--sentiment-pos))",
+          neg: "hsl(var(--sentiment-neg))",
+          neu: "hsl(var(--sentiment-neu))",
+          "pos-bg": "hsl(var(--sentiment-pos-bg))",
+          "neg-bg": "hsl(var(--sentiment-neg-bg))",
+          "neu-bg": "hsl(var(--sentiment-neu-bg))",
+          "pos-border": "hsl(var(--sentiment-pos-border))",
+          "neg-border": "hsl(var(--sentiment-neg-border))",
+          "neu-border": "hsl(var(--sentiment-neu-border))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -65,20 +86,12 @@ export default {
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
         },
       },
       animation: {
