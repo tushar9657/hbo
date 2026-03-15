@@ -128,7 +128,7 @@ const Index = () => {
         isRefreshing={loading}
       />
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1">
         <FilterSidebar
           open={sidebarOpen}
           sentiment={filters.sentiment}
@@ -153,8 +153,10 @@ const Index = () => {
           searchSuggestions={searchSuggestions}
           searchInputRef={searchInputRef}
         />
+        {/* Spacer for fixed sidebar */}
+        {sidebarOpen && <div className="w-[280px] shrink-0" />}
 
-        <main className="flex-1 overflow-y-auto p-4">
+        <main className="flex-1 min-w-0 p-4">
           <div className="mb-4 flex gap-1 border-b border-border">
             {TABS.map(tab => (
               <button
