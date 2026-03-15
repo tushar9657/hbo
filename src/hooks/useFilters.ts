@@ -2,12 +2,19 @@ import { useState, useMemo, useCallback } from 'react';
 import type { ParsedFiling, FilterState, Sentiment } from '@/types/filing';
 import { isSameDay } from '@/utils/dateUtils';
 
+function getDefaultDateFrom(): Date {
+  const d = new Date();
+  d.setDate(d.getDate() - 7);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
 const DEFAULT_FILTERS: FilterState = {
   sentiment: 'All',
   topics: [],
   subtopics: [],
   search: '',
-  dateFrom: null,
+  dateFrom: getDefaultDateFrom(),
   dateTo: null,
   timeframe: 'daily',
   selectedDate: null,

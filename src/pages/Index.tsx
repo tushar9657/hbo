@@ -176,7 +176,7 @@ const Index = () => {
                     ? 'bg-primary/10 text-primary'
                     : 'bg-muted text-muted-foreground'
                 )}>{filtered.length}</span>
-                <span className="ml-1.5 text-[10px] text-muted-foreground opacity-50">{tab.shortcut}</span>
+                
               </button>
             ))}
           </div>
