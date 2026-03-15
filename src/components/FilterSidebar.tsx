@@ -153,7 +153,8 @@ export function FilterSidebar({
         <div className="relative" ref={searchRef}>
           <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
           <Input
-            placeholder="Ticker or keyword..."
+            ref={searchInputRef}
+            placeholder="Ticker or keyword... (press /)"
             value={localSearch}
             onChange={e => handleSearchChange(e.target.value)}
             onFocus={() => localSearch && setShowSuggestions(true)}
