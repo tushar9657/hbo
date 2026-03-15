@@ -9,16 +9,17 @@ export default {
       center: true,
       padding: "2rem",
       screens: {
-        "2xl": "1400px",
+        "2xl": "1280px",
       },
     },
     extend: {
       fontFamily: {
-        mono: ["IBM Plex Mono", "monospace"],
-        sans: ["IBM Plex Sans", "sans-serif"],
+        mono: ["Geist Mono", "monospace"],
+        sans: ["Geist", "system-ui", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
+        "border-subtle": "hsl(var(--border-subtle))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
@@ -71,12 +72,11 @@ export default {
           pos: "hsl(var(--sentiment-pos))",
           neg: "hsl(var(--sentiment-neg))",
           neu: "hsl(var(--sentiment-neu))",
-          "pos-bg": "hsl(var(--sentiment-pos-bg))",
-          "neg-bg": "hsl(var(--sentiment-neg-bg))",
-          "neu-bg": "hsl(var(--sentiment-neu-bg))",
-          "pos-border": "hsl(var(--sentiment-pos-border))",
-          "neg-border": "hsl(var(--sentiment-neg-border))",
-          "neu-border": "hsl(var(--sentiment-neu-border))",
+        },
+        impact: {
+          supply: "hsl(var(--impact-supply))",
+          regulatory: "hsl(var(--impact-regulatory))",
+          macro: "hsl(var(--impact-macro))",
         },
       },
       borderRadius: {

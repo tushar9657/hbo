@@ -8,6 +8,21 @@ export function parseDate(str: string): Date | null {
   return new Date(+m[3], months[m[2]], +m[1], +m[4], +m[5], +m[6]);
 }
 
+export function parseExtractionDate(str: string): Date | null {
+  if (!str) return null;
+  const months: Record<string, number> = {
+    Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
+    Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11,
+  };
+  // Handle DD-Mon-YYYY
+  const dmy = str.match(/(\d{1,2})-([A-Za-z]{3})-(\d{4})/);
+  if (dmy) return new Date(+dmy[3], months[dmy[2]], +dmy[1]);
+  // Handle YYYY-MM-DD
+  const iso = str.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return new Date(+iso[1], +iso[2] - 1, +iso[3]);
+  return null;
+}
+
 export function formatDate(date: Date | null): string {
   if (!date) return '—';
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -19,6 +34,11 @@ export function formatDate(date: Date | null): string {
   const ampm = hours >= 12 ? 'PM' : 'AM';
   const h12 = hours % 12 || 12;
   return `${day} ${month} ${year}, ${h12}:${minutes} ${ampm}`;
+}
+
+export function formatDateShort(date: Date): string {
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${String(date.getDate()).padStart(2, '0')} ${months[date.getMonth()]} ${date.getFullYear()}`;
 }
 
 export function timeAgo(date: Date): string {

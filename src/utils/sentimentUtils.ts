@@ -18,11 +18,11 @@ export function getSentimentRailClass(sentiment: Sentiment): string {
 export function getSentimentBadgeClasses(sentiment: Sentiment): string {
   switch (sentiment) {
     case 'Positive':
-      return 'bg-sentiment-pos-bg border-sentiment-pos-border text-sentiment-pos';
+      return 'border-sentiment-pos/30 text-sentiment-pos bg-sentiment-pos/10';
     case 'Negative':
-      return 'bg-sentiment-neg-bg border-sentiment-neg-border text-sentiment-neg';
+      return 'border-sentiment-neg/30 text-sentiment-neg bg-sentiment-neg/10';
     default:
-      return 'bg-sentiment-neu-bg border-sentiment-neu-border text-sentiment-neu';
+      return 'border-sentiment-neu/30 text-sentiment-neu bg-sentiment-neu/10';
   }
 }
 
@@ -43,9 +43,9 @@ export function getSentimentIcon(sentiment: Sentiment): string {
 }
 
 export const CHART_COLORS = {
-  positive: '#22c55e',
-  negative: '#ef4444',
-  neutral: '#f59e0b',
+  positive: '#16a34a',
+  negative: '#dc2626',
+  neutral: '#d97706',
 };
 
 export const TOPIC_COLORS = [
