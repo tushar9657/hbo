@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useFilings } from '@/hooks/useFilings';
 import { useFilters } from '@/hooks/useFilters';
 import { TopBar } from '@/components/TopBar';
@@ -24,6 +24,16 @@ const Index = () => {
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>('feed');
+
+  // Build search suggestions from unique tickers and titles
+  const searchSuggestions = useMemo(() => {
+    const set = new Set<string>();
+    filings.forEach(f => {
+      if (f.Ticker) set.add(f.Ticker);
+      if (f.Title) set.add(f.Title);
+    });
+    return Array.from(set).sort();
+  }, [filings]);
 
   useEffect(() => { fetchFilings(); }, [fetchFilings]);
 
@@ -103,6 +113,7 @@ const Index = () => {
           onTimeframe={setTimeframe}
           activeFilterCount={activeFilterCount}
           onClearAll={clearAll}
+          searchSuggestions={searchSuggestions}
         />
 
         <main className="flex-1 overflow-y-auto p-4">
