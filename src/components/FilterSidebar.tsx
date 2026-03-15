@@ -47,7 +47,7 @@ export function FilterSidebar({
   selectedSubtopics, onSubtopics, subtopics,
   dateFrom, onDateFrom, dateTo, onDateTo, dateRange,
   timeframe, onTimeframe, activeFilterCount, onClearAll,
-  searchSuggestions,
+  searchSuggestions, searchInputRef,
 }: SidebarProps) {
   const minTime = dateRange.min?.getTime() ?? 0;
   const maxTime = dateRange.max?.getTime() ?? 0;
