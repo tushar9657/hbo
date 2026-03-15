@@ -31,6 +31,7 @@ interface SidebarProps {
   activeFilterCount: number;
   onClearAll: () => void;
   searchSuggestions: string[];
+  searchInputRef?: (node: HTMLInputElement | null) => void;
 }
 
 const SENTIMENT_BUTTONS: { value: Sentiment | 'All'; label: string; activeClass: string }[] = [

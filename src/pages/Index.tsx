@@ -5,14 +5,15 @@ import { TopBar } from '@/components/TopBar';
 import { FilterSidebar } from '@/components/FilterSidebar';
 import { FeedTab } from '@/components/tabs/FeedTab';
 import { ChartsTab } from '@/components/tabs/ChartsTab';
+import { ActiveFilterPills } from '@/components/ActiveFilterPills';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { TabType } from '@/types/filing';
 
-const TABS: { key: TabType; label: string }[] = [
-  { key: 'feed', label: 'Feed' },
-  { key: 'charts', label: 'Charts' },
+const TABS: { key: TabType; label: string; shortcut: string }[] = [
+  { key: 'feed', label: 'Feed', shortcut: '1' },
+  { key: 'charts', label: 'Charts', shortcut: '2' },
 ];
 
 const Index = () => {
@@ -25,7 +26,6 @@ const Index = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>('feed');
 
-  // Build search suggestions from unique tickers and titles
   const searchSuggestions = useMemo(() => {
     const set = new Set<string>();
     filings.forEach(f => {
@@ -35,6 +35,11 @@ const Index = () => {
     return Array.from(set).sort();
   }, [filings]);
 
+  const searchInputRef = useCallback((node: HTMLInputElement | null) => {
+    // stored for keyboard shortcut focus
+    (window as any).__searchInput = node;
+  }, []);
+
   useEffect(() => { fetchFilings(); }, [fetchFilings]);
 
   useEffect(() => {
@@ -42,10 +47,48 @@ const Index = () => {
     if (mq.matches) setSidebarOpen(false);
   }, []);
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+      
+      if (e.key === '/' && !isInput) {
+        e.preventDefault();
+        (window as any).__searchInput?.focus();
+        if (!sidebarOpen) setSidebarOpen(true);
+        return;
+      }
+      
+      if (isInput) return;
+      
+      if (e.key === '1') setActiveTab('feed');
+      if (e.key === '2') setActiveTab('charts');
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [sidebarOpen]);
+
   const handleTopicFilter = useCallback((topic: string) => {
     setTopics([topic]);
     setActiveTab('feed');
   }, [setTopics]);
+
+  const handleTimelineDate = useCallback((dateLabel: string) => {
+    // dateLabel format: "DD Mon|Day" or "DD Mon"
+    const datePart = dateLabel.includes('|') ? dateLabel.split('|')[0] : dateLabel;
+    // Find a filing matching this date key
+    const match = filings.find(f => {
+      if (!f.PubDate) return false;
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const key = `${String(f.PubDate.getDate()).padStart(2, '0')} ${months[f.PubDate.getMonth()]}`;
+      return key === datePart.trim();
+    });
+    if (match?.PubDate) {
+      setSelectedDate(match.PubDate);
+      setActiveTab('feed');
+    }
+  }, [filings, setSelectedDate]);
 
   if (loading) {
     return (
@@ -64,16 +107,10 @@ const Index = () => {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
             <span className="text-destructive text-xl">✕</span>
           </div>
-          <h2 className="text-sm font-semibold text-foreground mb-2">
-            Failed to load filings data
-          </h2>
+          <h2 className="text-sm font-semibold text-foreground mb-2">Failed to load filings data</h2>
           <p className="text-xs text-muted-foreground mb-1">{error}</p>
-          <p className="text-xs text-muted-foreground mb-4">
-            Ensure the Google Sheet is set to "Anyone with link can view"
-          </p>
-          <Button onClick={fetchFilings} className="gap-2 text-xs">
-            ↺ Try Again
-          </Button>
+          <p className="text-xs text-muted-foreground mb-4">Ensure the Google Sheet is set to "Anyone with link can view"</p>
+          <Button onClick={fetchFilings} className="gap-2 text-xs">↺ Try Again</Button>
         </div>
       </div>
     );
@@ -114,6 +151,7 @@ const Index = () => {
           activeFilterCount={activeFilterCount}
           onClearAll={clearAll}
           searchSuggestions={searchSuggestions}
+          searchInputRef={searchInputRef}
         />
 
         <main className="flex-1 overflow-y-auto p-4">
@@ -130,9 +168,22 @@ const Index = () => {
                 )}
               >
                 {tab.label}
+                <span className="ml-1.5 text-[10px] text-muted-foreground opacity-50">{tab.shortcut}</span>
               </button>
             ))}
           </div>
+
+          <ActiveFilterPills
+            filters={filters}
+            onClearSentiment={() => setSentiment('All')}
+            onRemoveTopic={(t) => setTopics(filters.topics.filter(x => x !== t))}
+            onRemoveSubtopic={(s) => setSubtopics(filters.subtopics.filter(x => x !== s))}
+            onClearSearch={() => setSearch('')}
+            onClearDateFrom={() => setDateFrom(null)}
+            onClearDateTo={() => setDateTo(null)}
+            onClearSelectedDate={() => setSelectedDate(null)}
+            onClearAll={clearAll}
+          />
 
           {activeTab === 'feed' && (
             <FeedTab
@@ -146,6 +197,7 @@ const Index = () => {
               filings={filtered}
               timeframe={filters.timeframe}
               onTopicFilter={handleTopicFilter}
+              onDateFilter={handleTimelineDate}
             />
           )}
         </main>
