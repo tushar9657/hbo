@@ -32,6 +32,8 @@ export function timeAgo(date: Date): string {
   return `${diffHr}h ago`;
 }
 
+const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
 export function getWeekKey(date: Date): string {
   const d = new Date(date);
   d.setHours(0, 0, 0, 0);
@@ -45,6 +47,10 @@ export function getWeekKey(date: Date): string {
 export function getDayKey(date: Date): string {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   return `${String(date.getDate()).padStart(2, '0')} ${months[date.getMonth()]}`;
+}
+
+export function getDayName(date: Date): string {
+  return DAY_NAMES[date.getDay()];
 }
 
 export function isSameDay(a: Date, b: Date): boolean {

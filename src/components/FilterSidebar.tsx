@@ -1,12 +1,12 @@
-import { Search, X } from 'lucide-react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { Search, X, ChevronDown, Check, CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
 import type { Sentiment, TimeFrame } from '@/types/filing';
 
 interface SidebarProps {
@@ -15,13 +15,17 @@ interface SidebarProps {
   onSentiment: (s: Sentiment | 'All') => void;
   search: string;
   onSearch: (s: string) => void;
-  topic: string;
-  onTopic: (t: string) => void;
+  selectedTopics: string[];
+  onTopics: (t: string[]) => void;
   topics: string[];
+  selectedSubtopics: string[];
+  onSubtopics: (s: string[]) => void;
+  subtopics: string[];
   dateFrom: Date | null;
   onDateFrom: (d: Date | null) => void;
   dateTo: Date | null;
   onDateTo: (d: Date | null) => void;
+  dateRange: { min: Date | null; max: Date | null };
   timeframe: TimeFrame;
   onTimeframe: (t: TimeFrame) => void;
   activeFilterCount: number;
@@ -31,129 +35,209 @@ interface SidebarProps {
 const SENTIMENTS: (Sentiment | 'All')[] = ['All', 'Positive', 'Negative', 'Neutral'];
 
 export function FilterSidebar({
-  open,
-  sentiment,
-  onSentiment,
-  search,
-  onSearch,
-  topic,
-  onTopic,
-  topics,
-  dateFrom,
-  onDateFrom,
-  dateTo,
-  onDateTo,
-  timeframe,
-  onTimeframe,
-  activeFilterCount,
-  onClearAll,
+  open, sentiment, onSentiment, search, onSearch,
+  selectedTopics, onTopics, topics,
+  selectedSubtopics, onSubtopics, subtopics,
+  dateFrom, onDateFrom, dateTo, onDateTo, dateRange,
+  timeframe, onTimeframe, activeFilterCount, onClearAll,
 }: SidebarProps) {
+  const minTime = dateRange.min?.getTime() ?? 0;
+  const maxTime = dateRange.max?.getTime() ?? 0;
+  const fromTime = dateFrom?.getTime() ?? minTime;
+  const toTime = dateTo?.getTime() ?? maxTime;
+
+  const handleSliderChange = useCallback((values: number[]) => {
+    const newFrom = new Date(values[0]);
+    const newTo = new Date(values[1]);
+    newFrom.setHours(0, 0, 0, 0);
+    newTo.setHours(23, 59, 59, 999);
+    onDateFrom(values[0] <= minTime ? null : newFrom);
+    onDateTo(values[1] >= maxTime ? null : newTo);
+  }, [minTime, maxTime, onDateFrom, onDateTo]);
+
   if (!open) return null;
 
   return (
-    <aside className="w-[280px] shrink-0 border-r border-border bg-surface-1 p-4 overflow-y-auto">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-mono text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
-          Filters
-        </h2>
+    <aside className="w-[280px] shrink-0 border-r border-border bg-card p-4 overflow-y-auto">
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="font-sans text-sm font-semibold text-foreground">Filters</h2>
         {activeFilterCount > 0 && (
-          <Button variant="ghost" size="sm" onClick={onClearAll} className="h-6 gap-1 px-2 font-mono text-xs text-muted-foreground hover:text-foreground">
+          <Button variant="ghost" size="sm" onClick={onClearAll} className="h-6 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground">
             <X className="h-3 w-3" /> Clear All
           </Button>
         )}
       </div>
 
-      {/* Timeframe */}
-      <div className="mb-5">
-        <label className="mb-1.5 block font-mono text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-          Timeframe
-        </label>
-        <div className="flex gap-1">
+      <FilterSection label="Timeframe">
+        <div className="flex gap-1 rounded-lg bg-muted p-0.5">
           {(['daily', 'weekly'] as TimeFrame[]).map(tf => (
-            <Button
+            <button
               key={tf}
-              variant={timeframe === tf ? 'default' : 'ghost'}
-              size="sm"
               onClick={() => onTimeframe(tf)}
               className={cn(
-                'flex-1 font-mono text-xs uppercase',
-                timeframe === tf ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'
+                'flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all',
+                timeframe === tf
+                  ? 'bg-card text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              {tf}
-            </Button>
+              {tf.charAt(0).toUpperCase() + tf.slice(1)}
+            </button>
           ))}
         </div>
-      </div>
+      </FilterSection>
 
-      {/* Sentiment */}
-      <div className="mb-5">
-        <label className="mb-1.5 block font-mono text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-          Sentiment
-        </label>
-        <div className="flex flex-wrap gap-1">
+      <FilterSection label="Sentiment">
+        <div className="flex flex-wrap gap-1.5">
           {SENTIMENTS.map(s => (
-            <Button
+            <button
               key={s}
-              variant={sentiment === s ? 'default' : 'ghost'}
-              size="sm"
               onClick={() => onSentiment(s)}
               className={cn(
-                'font-mono text-xs',
-                sentiment === s ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'
+                'rounded-full px-3 py-1 text-xs font-medium transition-all',
+                sentiment === s
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-accent'
               )}
             >
               {s}
-            </Button>
+            </button>
           ))}
         </div>
-      </div>
+      </FilterSection>
 
-      {/* Search */}
-      <div className="mb-5">
-        <label className="mb-1.5 block font-mono text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-          Search
-        </label>
+      <FilterSection label="Search">
         <div className="relative">
           <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
           <Input
             placeholder="Ticker or keyword..."
             value={search}
             onChange={e => onSearch(e.target.value)}
-            className="h-8 bg-surface-2 pl-8 font-mono text-xs border-border"
+            className="h-9 pl-8 text-xs bg-muted/50 border-border"
           />
         </div>
-      </div>
+      </FilterSection>
 
-      {/* Topic */}
-      <div className="mb-5">
-        <label className="mb-1.5 block font-mono text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-          Topic
-        </label>
-        <Select value={topic || '__all__'} onValueChange={v => onTopic(v === '__all__' ? '' : v)}>
-          <SelectTrigger className="h-8 bg-surface-2 font-mono text-xs border-border">
-            <SelectValue placeholder="All Topics" />
-          </SelectTrigger>
-          <SelectContent className="bg-surface-2 border-border">
-            <SelectItem value="__all__" className="font-mono text-xs">All Topics</SelectItem>
-            {topics.map(t => (
-              <SelectItem key={t} value={t} className="font-mono text-xs">{t}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      <FilterSection label="Topics">
+        <MultiSelect options={topics} selected={selectedTopics} onChange={onTopics} placeholder="All Topics" />
+      </FilterSection>
 
-      {/* Date Range */}
-      <div className="mb-5">
-        <label className="mb-1.5 block font-mono text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-          Date Range
-        </label>
-        <div className="flex flex-col gap-2">
-          <DatePickerField label="From" value={dateFrom} onChange={onDateFrom} />
-          <DatePickerField label="To" value={dateTo} onChange={onDateTo} />
+      <FilterSection label="Subtopics">
+        <MultiSelect options={subtopics} selected={selectedSubtopics} onChange={onSubtopics} placeholder="All Subtopics" />
+      </FilterSection>
+
+      <FilterSection label="Date Range">
+        <div className="space-y-3">
+          {minTime > 0 && maxTime > 0 && (
+            <Slider
+              min={minTime}
+              max={maxTime}
+              step={86400000}
+              value={[fromTime, toTime]}
+              onValueChange={handleSliderChange}
+              className="w-full"
+            />
+          )}
+          <div className="flex gap-2">
+            <DatePickerField label="From" value={dateFrom} onChange={onDateFrom} />
+            <DatePickerField label="To" value={dateTo} onChange={onDateTo} />
+          </div>
         </div>
-      </div>
+      </FilterSection>
     </aside>
+  );
+}
+
+function FilterSection({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="mb-5">
+      <label className="mb-2 block text-xs font-medium text-muted-foreground uppercase tracking-wider">
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+function MultiSelect({ options, selected, onChange, placeholder }: {
+  options: string[];
+  selected: string[];
+  onChange: (v: string[]) => void;
+  placeholder: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const filtered = useMemo(() => {
+    if (!search) return options;
+    const q = search.toLowerCase();
+    return options.filter(o => o.toLowerCase().includes(q));
+  }, [options, search]);
+
+  const toggle = (item: string) => {
+    onChange(selected.includes(item) ? selected.filter(s => s !== item) : [...selected, item]);
+  };
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        className={cn(
+          'flex h-9 w-full items-center justify-between rounded-md border border-border bg-muted/50 px-3 text-xs transition-colors',
+          selected.length > 0 ? 'text-foreground' : 'text-muted-foreground'
+        )}
+      >
+        <span className="truncate">
+          {selected.length === 0 ? placeholder : `${selected.length} selected`}
+        </span>
+        <ChevronDown className={cn('h-3.5 w-3.5 shrink-0 transition-transform', open && 'rotate-180')} />
+      </button>
+
+      {open && (
+        <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-card shadow-lg max-h-[200px] overflow-hidden">
+          <div className="p-1.5">
+            <Input
+              placeholder="Search..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="h-7 text-xs bg-muted/50 border-none"
+              autoFocus
+            />
+          </div>
+          <div className="overflow-y-auto max-h-[150px] p-1">
+            {filtered.length === 0 && (
+              <p className="px-2 py-1.5 text-xs text-muted-foreground">No results</p>
+            )}
+            {filtered.map(option => (
+              <button
+                key={option}
+                onClick={() => toggle(option)}
+                className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-xs hover:bg-muted transition-colors text-left"
+              >
+                <div className={cn(
+                  'flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border',
+                  selected.includes(option)
+                    ? 'bg-primary border-primary text-primary-foreground'
+                    : 'border-border'
+                )}>
+                  {selected.includes(option) && <Check className="h-2.5 w-2.5" />}
+                </div>
+                <span className="truncate">{option}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -164,12 +248,12 @@ function DatePickerField({ label, value, onChange }: { label: string; value: Dat
         <Button
           variant="outline"
           className={cn(
-            'h-8 w-full justify-start bg-surface-2 font-mono text-xs border-border',
+            'h-8 flex-1 justify-start text-xs border-border bg-muted/50',
             !value && 'text-muted-foreground'
           )}
         >
-          <CalendarIcon className="mr-2 h-3.5 w-3.5" />
-          {value ? format(value, 'dd MMM yyyy') : label}
+          <CalendarIcon className="mr-1.5 h-3 w-3" />
+          {value ? format(value, 'dd MMM') : label}
           {value && (
             <X
               className="ml-auto h-3 w-3 text-muted-foreground hover:text-foreground"
@@ -178,7 +262,7 @@ function DatePickerField({ label, value, onChange }: { label: string; value: Dat
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 bg-surface-2 border-border" align="start">
+      <PopoverContent className="w-auto p-0" align="start">
         <Calendar
           mode="single"
           selected={value ?? undefined}

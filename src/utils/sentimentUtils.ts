@@ -43,9 +43,9 @@ export function getSentimentIcon(sentiment: Sentiment): string {
 }
 
 export const CHART_COLORS = {
-  positive: '#4ade80',
-  negative: '#f87171',
-  neutral: '#fbbf24',
+  positive: '#22c55e',
+  negative: '#ef4444',
+  neutral: '#f59e0b',
 };
 
 export const TOPIC_COLORS = [

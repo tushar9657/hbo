@@ -25,14 +25,15 @@ export interface ParsedFiling extends Omit<Filing, 'PubDate'> {
 
 export type Sentiment = 'Positive' | 'Negative' | 'Neutral';
 export type TimeFrame = 'daily' | 'weekly';
-export type TabType = 'feed' | 'charts' | 'heatmap';
+export type TabType = 'feed' | 'charts';
 
 export interface FilterState {
   sentiment: Sentiment | 'All';
-  topic: string;
+  topics: string[];
+  subtopics: string[];
   search: string;
   dateFrom: Date | null;
   dateTo: Date | null;
   timeframe: TimeFrame;
-  selectedDate: Date | null; // from heatmap click
+  selectedDate: Date | null;
 }
