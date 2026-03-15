@@ -11,7 +11,7 @@ interface FilingCardProps {
   filing: ParsedFiling;
 }
 
-const cardTransition = { type: "tween" as const, ease: [0.25, 0.1, 0.25, 1], duration: 0.2 };
+const cardTransition = { type: "tween" as const, ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number], duration: 0.2 };
 
 export function FilingCard({ filing }: FilingCardProps) {
   const [expanded, setExpanded] = useState(false);
