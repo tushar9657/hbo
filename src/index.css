@@ -4,68 +4,74 @@
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 220 13% 18%;
+    --background: 0 0% 4%;
+    --foreground: 0 0% 96%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 220 13% 18%;
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 96%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 13% 18%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 96%;
 
-    --primary: 217 91% 50%;
+    --primary: 217 91% 53%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 220 13% 18%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 96%;
 
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 53%;
 
-    --accent: 220 14% 96%;
-    --accent-foreground: 220 13% 18%;
+    --accent: 0 0% 10%;
+    --accent-foreground: 0 0% 96%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 217 91% 50%;
+    --border: 0 0% 13%;
+    --border-subtle: 0 0% 10%;
+    --input: 0 0% 13%;
+    --ring: 217 91% 53%;
 
     --radius: 0.5rem;
 
     /* Sentiment tokens */
-    --sentiment-pos: 152 69% 31%;
+    --sentiment-pos: 142 72% 29%;
     --sentiment-neg: 0 72% 51%;
-    --sentiment-neu: 38 92% 50%;
+    --sentiment-neu: 32 95% 44%;
 
-    --sentiment-pos-bg: 152 69% 96%;
-    --sentiment-neg-bg: 0 72% 97%;
-    --sentiment-neu-bg: 38 92% 96%;
+    --sentiment-pos-bg: 142 72% 29% / 0.15;
+    --sentiment-neg-bg: 0 72% 51% / 0.15;
+    --sentiment-neu-bg: 32 95% 44% / 0.15;
 
-    --sentiment-pos-border: 152 69% 80%;
-    --sentiment-neg-border: 0 72% 82%;
-    --sentiment-neu-border: 38 69% 78%;
+    --sentiment-pos-border: 142 72% 29% / 0.3;
+    --sentiment-neg-border: 0 72% 51% / 0.3;
+    --sentiment-neu-border: 32 95% 44% / 0.3;
 
     /* Surface elevations */
-    --surface-0: 0 0% 98%;
-    --surface-1: 0 0% 100%;
-    --surface-2: 220 14% 96%;
-    --surface-3: 220 14% 93%;
+    --surface-0: 0 0% 4%;
+    --surface-1: 0 0% 7%;
+    --surface-2: 0 0% 10%;
+    --surface-3: 0 0% 13%;
 
     /* Sidebar */
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 220 13% 18%;
-    --sidebar-primary: 217 91% 50%;
+    --sidebar-background: 0 0% 7%;
+    --sidebar-foreground: 0 0% 96%;
+    --sidebar-primary: 217 91% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 14% 96%;
-    --sidebar-accent-foreground: 220 13% 18%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217 91% 50%;
+    --sidebar-accent: 0 0% 10%;
+    --sidebar-accent-foreground: 0 0% 96%;
+    --sidebar-border: 0 0% 13%;
+    --sidebar-ring: 217 91% 53%;
 
     /* Typography */
-    --font-mono: 'IBM Plex Mono', monospace;
-    --font-sans: 'IBM Plex Sans', sans-serif;
+    --font-mono: 'Geist Mono', monospace;
+    --font-sans: 'Geist', system-ui, sans-serif;
+
+    /* Impact badge colors */
+    --impact-supply: 217 91% 53%;
+    --impact-regulatory: 32 95% 44%;
+    --impact-macro: 271 81% 56%;
   }
 }
 
@@ -85,20 +91,12 @@
 }
 
 @layer utilities {
-  .card-shadow {
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04);
-  }
-
-  .card-shadow-lg {
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-  }
-
   .card-hover-border {
-    transition: border-color 150ms ease, box-shadow 150ms ease;
+    transition: border-color 150ms ease, background-color 150ms ease;
   }
   .card-hover-border:hover {
-    border-color: hsl(var(--primary) / 0.3);
-    box-shadow: 0 4px 12px -2px rgb(0 0 0 / 0.06);
+    border-color: hsl(0 0% 20%);
+    background-color: hsl(0 0% 10%);
   }
 
   .sentiment-rail-pos {
