@@ -31,6 +31,7 @@ interface SidebarProps {
   activeFilterCount: number;
   onClearAll: () => void;
   searchSuggestions: string[];
+  searchInputRef?: (node: HTMLInputElement | null) => void;
 }
 
 const SENTIMENT_BUTTONS: { value: Sentiment | 'All'; label: string; activeClass: string }[] = [
@@ -46,7 +47,7 @@ export function FilterSidebar({
   selectedSubtopics, onSubtopics, subtopics,
   dateFrom, onDateFrom, dateTo, onDateTo, dateRange,
   timeframe, onTimeframe, activeFilterCount, onClearAll,
-  searchSuggestions,
+  searchSuggestions, searchInputRef,
 }: SidebarProps) {
   const minTime = dateRange.min?.getTime() ?? 0;
   const maxTime = dateRange.max?.getTime() ?? 0;
@@ -100,7 +101,7 @@ export function FilterSidebar({
   if (!open) return null;
 
   return (
-    <aside className="w-[280px] shrink-0 border-r border-border bg-card p-4 overflow-y-auto sticky top-[57px] h-[calc(100vh-57px)] self-start">
+    <aside className="w-[280px] shrink-0 border-r border-border bg-card p-4 overflow-y-auto fixed top-[57px] h-[calc(100vh-57px)] z-[100]">
       <div className="flex items-center justify-between mb-5">
         <h2 className="font-sans text-sm font-semibold text-foreground">Filters</h2>
         {activeFilterCount > 0 && (
@@ -152,7 +153,8 @@ export function FilterSidebar({
         <div className="relative" ref={searchRef}>
           <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
           <Input
-            placeholder="Ticker or keyword..."
+            ref={searchInputRef}
+            placeholder="Ticker or keyword... (press /)"
             value={localSearch}
             onChange={e => handleSearchChange(e.target.value)}
             onFocus={() => localSearch && setShowSuggestions(true)}

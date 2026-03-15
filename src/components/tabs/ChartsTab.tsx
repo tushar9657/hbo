@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer,
-  PieChart, Pie, Cell, AreaChart, Area,
+  AreaChart, Area, Cell,
 } from 'recharts';
 import { ArrowLeft } from 'lucide-react';
 import type { ParsedFiling, TimeFrame } from '@/types/filing';
@@ -13,6 +13,7 @@ interface ChartsTabProps {
   filings: ParsedFiling[];
   timeframe: TimeFrame;
   onTopicFilter: (topic: string) => void;
+  onDateFilter: (dateLabel: string) => void;
 }
 
 type ChartMode = 'bar' | 'line';
@@ -40,7 +41,7 @@ function DailyTick({ x, y, payload, timeframe }: any) {
   );
 }
 
-export function ChartsTab({ filings, timeframe, onTopicFilter }: ChartsTabProps) {
+export function ChartsTab({ filings, timeframe, onTopicFilter, onDateFilter }: ChartsTabProps) {
   const [chartMode, setChartMode] = useState<ChartMode>('bar');
   const [drilldownTopic, setDrilldownTopic] = useState<string | null>(null);
 
@@ -75,7 +76,6 @@ export function ChartsTab({ filings, timeframe, onTopicFilter }: ChartsTabProps)
       .map(([name, count]) => ({ name: name.length > 30 ? name.slice(0, 30) + '…' : name, fullName: name, count }));
   }, [filings]);
 
-  // Subtopic drilldown data
   const subtopicData = useMemo(() => {
     if (!drilldownTopic) return [];
     const map = new Map<string, number>();
@@ -88,20 +88,6 @@ export function ChartsTab({ filings, timeframe, onTopicFilter }: ChartsTabProps)
       .slice(0, 10)
       .map(([name, count]) => ({ name: name.length > 30 ? name.slice(0, 30) + '…' : name, fullName: name, count }));
   }, [filings, drilldownTopic]);
-
-  const donutData = useMemo(() => {
-    let pos = 0, neg = 0, neu = 0;
-    filings.forEach(f => {
-      if (f.AI_Sentiment === 'Positive') pos++;
-      else if (f.AI_Sentiment === 'Negative') neg++;
-      else neu++;
-    });
-    return [
-      { name: 'Positive', value: pos, color: CHART_COLORS.positive },
-      { name: 'Neutral', value: neu, color: CHART_COLORS.neutral },
-      { name: 'Negative', value: neg, color: CHART_COLORS.negative },
-    ];
-  }, [filings]);
 
   const hourlyData = useMemo(() => {
     const hours = Array.from({ length: 24 }, (_, i) => ({ hour: String(i).padStart(2, '0'), count: 0 }));
@@ -128,6 +114,12 @@ export function ChartsTab({ filings, timeframe, onTopicFilter }: ChartsTabProps)
     return label;
   };
 
+  const handleTimelineBarClick = (data: any) => {
+    if (data?.name) {
+      onDateFilter(data.name);
+    }
+  };
+
   const handleTopicClick = (d: any) => {
     setDrilldownTopic(d.fullName);
   };
@@ -139,9 +131,9 @@ export function ChartsTab({ filings, timeframe, onTopicFilter }: ChartsTabProps)
     : 'Topic Distribution';
 
   return (
-    <div className="mx-auto max-w-[1200px] grid grid-cols-1 lg:grid-cols-2 gap-4">
-      {/* Sentiment Timeline */}
-      <div className="col-span-1 lg:col-span-2 rounded-lg border border-border bg-card p-4 card-shadow">
+    <div className="mx-auto max-w-[1200px] space-y-4">
+      {/* Sentiment Timeline — full width */}
+      <div className="rounded-lg border border-border bg-card p-4 card-shadow">
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-sm font-semibold text-foreground">
             Sentiment Timeline
@@ -164,19 +156,20 @@ export function ChartsTab({ filings, timeframe, onTopicFilter }: ChartsTabProps)
             ))}
           </div>
         </div>
+        <p className="mb-2 text-[10px] text-muted-foreground">Click a date bar to filter the feed</p>
         <ResponsiveContainer width="100%" height={280}>
           {chartMode === 'bar' ? (
-            <BarChart data={timelineData}>
+            <BarChart data={timelineData} onClick={(e) => e?.activePayload?.[0] && handleTimelineBarClick(e.activePayload[0].payload)}>
               <XAxis dataKey="name" tick={(props) => <DailyTick {...props} timeframe={timeframe} />} axisLine={false} tickLine={false} height={timeframe === 'daily' ? 40 : 25} />
               <YAxis tick={{ fontSize: 11, fill: 'hsl(220 9% 46%)' }} axisLine={false} tickLine={false} />
-              <Tooltip {...tooltipStyle} formatter={timelineTooltipFormatter} labelFormatter={timelineLabelFormatter} />
+              <Tooltip {...tooltipStyle} formatter={timelineTooltipFormatter} labelFormatter={timelineLabelFormatter} cursor={{ fill: 'hsl(220 13% 95%)' }} />
               <Legend wrapperStyle={{ fontSize: '11px' }} />
-              <Bar dataKey="Positive" fill={CHART_COLORS.positive} stackId="a" radius={[3, 3, 0, 0]} />
-              <Bar dataKey="Neutral" fill={CHART_COLORS.neutral} stackId="a" />
-              <Bar dataKey="Negative" fill={CHART_COLORS.negative} stackId="a" radius={[0, 0, 3, 3]} />
+              <Bar dataKey="Positive" fill={CHART_COLORS.positive} stackId="a" radius={0} />
+              <Bar dataKey="Neutral" fill={CHART_COLORS.neutral} stackId="a" radius={0} />
+              <Bar dataKey="Negative" fill={CHART_COLORS.negative} stackId="a" radius={[3, 3, 0, 0]} />
             </BarChart>
           ) : (
-            <LineChart data={timelineData}>
+            <LineChart data={timelineData} onClick={(e) => e?.activePayload?.[0] && handleTimelineBarClick(e.activePayload[0].payload)}>
               <XAxis dataKey="name" tick={(props) => <DailyTick {...props} timeframe={timeframe} />} axisLine={false} tickLine={false} height={timeframe === 'daily' ? 40 : 25} />
               <YAxis tick={{ fontSize: 11, fill: 'hsl(220 9% 46%)' }} axisLine={false} tickLine={false} />
               <Tooltip {...tooltipStyle} formatter={timelineTooltipFormatter} labelFormatter={timelineLabelFormatter} />
@@ -189,7 +182,7 @@ export function ChartsTab({ filings, timeframe, onTopicFilter }: ChartsTabProps)
         </ResponsiveContainer>
       </div>
 
-      {/* Topic / Subtopic Distribution */}
+      {/* Topic / Subtopic Distribution — full width */}
       <div className="rounded-lg border border-border bg-card p-4 card-shadow">
         <div className="mb-3 flex items-center gap-2">
           {isShowingSubtopics && (
@@ -203,10 +196,10 @@ export function ChartsTab({ filings, timeframe, onTopicFilter }: ChartsTabProps)
           )}
           <h3 className="text-sm font-semibold text-foreground">{distributionTitle}</h3>
         </div>
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width="100%" height={350}>
           <BarChart data={distributionData} layout="vertical" margin={{ left: 20 }}>
             <XAxis type="number" tick={{ fontSize: 11, fill: 'hsl(220 9% 46%)' }} axisLine={false} tickLine={false} />
-            <YAxis dataKey="name" type="category" width={150} tick={{ fontSize: 10, fill: 'hsl(220 9% 46%)' }} axisLine={false} tickLine={false} />
+            <YAxis dataKey="name" type="category" width={180} tick={{ fontSize: 10, fill: 'hsl(220 9% 46%)' }} axisLine={false} tickLine={false} />
             <Tooltip {...tooltipStyle} />
             <Bar
               dataKey="count"
@@ -225,27 +218,8 @@ export function ChartsTab({ filings, timeframe, onTopicFilter }: ChartsTabProps)
         )}
       </div>
 
-      {/* Sentiment Donut */}
+      {/* Hourly Volume — full width */}
       <div className="rounded-lg border border-border bg-card p-4 card-shadow">
-        <h3 className="mb-3 text-sm font-semibold text-foreground">Sentiment Distribution</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <PieChart>
-            <Pie data={donutData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={2} dataKey="value" strokeWidth={0}>
-              {donutData.map((entry, i) => (
-                <Cell key={i} fill={entry.color} />
-              ))}
-            </Pie>
-            <Tooltip {...tooltipStyle} formatter={(value: number, name: string) => {
-              const total = donutData.reduce((s, d) => s + d.value, 0);
-              return [`${value} (${total ? ((value / total) * 100).toFixed(1) : 0}%)`, name];
-            }} />
-            <Legend wrapperStyle={{ fontSize: '11px' }} />
-          </PieChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Hourly Volume */}
-      <div className="col-span-1 lg:col-span-2 rounded-lg border border-border bg-card p-4 card-shadow">
         <h3 className="mb-3 text-sm font-semibold text-foreground">Filing Volume by Hour</h3>
         <ResponsiveContainer width="100%" height={220}>
           <AreaChart data={hourlyData}>
