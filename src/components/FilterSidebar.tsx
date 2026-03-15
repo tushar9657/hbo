@@ -41,9 +41,6 @@ export function FilterSidebar({
   dateFrom, onDateFrom, dateTo, onDateTo, dateRange,
   timeframe, onTimeframe, activeFilterCount, onClearAll,
 }: SidebarProps) {
-  if (!open) return null;
-
-  // Compute slider range
   const minTime = dateRange.min?.getTime() ?? 0;
   const maxTime = dateRange.max?.getTime() ?? 0;
   const fromTime = dateFrom?.getTime() ?? minTime;
@@ -58,6 +55,8 @@ export function FilterSidebar({
     onDateTo(values[1] >= maxTime ? null : newTo);
   }, [minTime, maxTime, onDateFrom, onDateTo]);
 
+  if (!open) return null;
+
   return (
     <aside className="w-[280px] shrink-0 border-r border-border bg-card p-4 overflow-y-auto">
       <div className="flex items-center justify-between mb-5">
@@ -69,7 +68,6 @@ export function FilterSidebar({
         )}
       </div>
 
-      {/* Timeframe */}
       <FilterSection label="Timeframe">
         <div className="flex gap-1 rounded-lg bg-muted p-0.5">
           {(['daily', 'weekly'] as TimeFrame[]).map(tf => (
@@ -89,7 +87,6 @@ export function FilterSidebar({
         </div>
       </FilterSection>
 
-      {/* Sentiment */}
       <FilterSection label="Sentiment">
         <div className="flex flex-wrap gap-1.5">
           {SENTIMENTS.map(s => (
@@ -109,7 +106,6 @@ export function FilterSidebar({
         </div>
       </FilterSection>
 
-      {/* Search */}
       <FilterSection label="Search">
         <div className="relative">
           <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
@@ -122,27 +118,14 @@ export function FilterSidebar({
         </div>
       </FilterSection>
 
-      {/* Topics */}
       <FilterSection label="Topics">
-        <MultiSelect
-          options={topics}
-          selected={selectedTopics}
-          onChange={onTopics}
-          placeholder="All Topics"
-        />
+        <MultiSelect options={topics} selected={selectedTopics} onChange={onTopics} placeholder="All Topics" />
       </FilterSection>
 
-      {/* Subtopics */}
       <FilterSection label="Subtopics">
-        <MultiSelect
-          options={subtopics}
-          selected={selectedSubtopics}
-          onChange={onSubtopics}
-          placeholder="All Subtopics"
-        />
+        <MultiSelect options={subtopics} selected={selectedSubtopics} onChange={onSubtopics} placeholder="All Subtopics" />
       </FilterSection>
 
-      {/* Date Range */}
       <FilterSection label="Date Range">
         <div className="space-y-3">
           {minTime > 0 && maxTime > 0 && (
