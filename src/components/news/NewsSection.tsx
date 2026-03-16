@@ -101,7 +101,6 @@ export function NewsSection({ articles }: NewsSectionProps) {
         if (sectors.length > 0 && !sectors.includes(a.Industry_Sector)) return false;
         if (categories.length > 0 && !categories.includes(a.Event_Category)) return false;
         if (impactFilter !== 'All') {
-          const { parseImpact } = require('@/utils/impactUtils');
           const impact = parseImpact(a.Impact_to_india);
           if (impactFilter === 'Supply/Demand' && impact.type !== 'Supply/Demand') return false;
           if (impactFilter === 'Regulatory' && impact.type !== 'Regulatory') return false;
