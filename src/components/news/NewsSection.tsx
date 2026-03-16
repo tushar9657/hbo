@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, CalendarIcon, X } from 'lucide-react';
 import { useNewsFilters } from '@/hooks/useNewsFilters';
 import { HeroStrip } from '@/components/news/HeroStrip';
 import { FilterBar } from '@/components/news/FilterBar';
+import { parseImpact } from '@/utils/impactUtils';
 import { ArticleCard } from '@/components/news/ArticleCard';
 import { SectorSidebar } from '@/components/news/SectorSidebar';
 import { Switch } from '@/components/ui/switch';
