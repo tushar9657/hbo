@@ -1,29 +1,39 @@
 import { useState, useCallback } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CalendarIcon, X } from 'lucide-react';
 import { useNewsFilters } from '@/hooks/useNewsFilters';
 import { HeroStrip } from '@/components/news/HeroStrip';
 import { FilterBar } from '@/components/news/FilterBar';
+import { parseImpact } from '@/utils/impactUtils';
 import { ArticleCard } from '@/components/news/ArticleCard';
 import { SectorSidebar } from '@/components/news/SectorSidebar';
-import { NewsAnalytics } from '@/components/news/NewsAnalytics';
-import { formatDateShort } from '@/utils/dateUtils';
+import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Slider } from '@/components/ui/slider';
+import { formatDateShort, isSameDay } from '@/utils/dateUtils';
 import { cn } from '@/lib/utils';
-import type { NewsArticle, NewsTab } from '@/types/news';
+import { format } from 'date-fns';
+import type { NewsArticle } from '@/types/news';
 
 interface NewsSectionProps {
   articles: NewsArticle[];
 }
 
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
 export function NewsSection({ articles }: NewsSectionProps) {
   const {
-    filtered, selectedDate, goToPrevDate, goToNextDate,
-    isLatestDate, isEarliestDate,
+    filtered, selectedDate, setSelectedDate, goToPrevDate, goToNextDate,
+    isLatestDate, isEarliestDate, allDates,
     search, setSearch, sectors, setSectors, availableSectors,
     categories, setCategories, availableCategories,
     impactFilter, setImpactFilter, activeFilterCount, clearFilters,
   } = useNewsFilters(articles);
 
-  const [activeTab, setActiveTab] = useState<NewsTab>('feed');
+  const [dateRangeMode, setDateRangeMode] = useState(false);
+  const [dateFrom, setDateFrom] = useState<Date | null>(null);
+  const [dateTo, setDateTo] = useState<Date | null>(null);
 
   const handleSectorClick = useCallback((sector: string) => {
     if (sectors.includes(sector)) {
@@ -35,109 +45,218 @@ export function NewsSection({ articles }: NewsSectionProps) {
 
   const activeSector = sectors.length === 1 ? sectors[0] : null;
 
+  // Date range boundaries from allDates
+  const minDate = allDates.length > 0 ? allDates[allDates.length - 1] : null;
+  const maxDate = allDates.length > 0 ? allDates[0] : null;
+  const minTime = minDate?.getTime() ?? 0;
+  const maxTime = maxDate?.getTime() ?? 0;
+  const fromTime = dateFrom?.getTime() ?? minTime;
+  const toTime = dateTo?.getTime() ?? maxTime;
+
+  // When in date range mode, filter articles by date range
+  const displayArticles = dateRangeMode
+    ? filtered.filter(a => {
+        if (!a._parsedDate) return false;
+        const t = a._parsedDate.getTime();
+        const from = dateFrom ? dateFrom.getTime() : minTime;
+        const to = dateTo ? dateTo.getTime() : maxTime;
+        return t >= from && t <= to;
+      })
+    : filtered;
+
+  // Since useNewsFilters already filters by selectedDate, in single-date mode we use filtered directly
+  // In date range mode, we override the date filtering
+
+  const handleDateRangeToggle = (on: boolean) => {
+    setDateRangeMode(on);
+    if (!on) {
+      setDateFrom(null);
+      setDateTo(null);
+    }
+  };
+
+  const handleSliderChange = (values: number[]) => {
+    const newFrom = new Date(values[0]);
+    const newTo = new Date(values[1]);
+    newFrom.setHours(0, 0, 0, 0);
+    newTo.setHours(23, 59, 59, 999);
+    setDateFrom(values[0] <= minTime ? null : newFrom);
+    setDateTo(values[1] >= maxTime ? null : newTo);
+  };
+
+  // For date range mode, we need all articles for the range (not filtered by single date)
+  const dateRangeArticles = dateRangeMode
+    ? articles.filter(a => {
+        if (!a._parsedDate) return false;
+        const t = a._parsedDate.getTime();
+        const from = dateFrom ? dateFrom.getTime() : minTime;
+        const to = dateTo ? dateTo.getTime() : maxTime;
+        if (t < from || t > to) return false;
+
+        // Apply other filters
+        if (search) {
+          const q = search.toLowerCase();
+          if (!a.Headline.toLowerCase().includes(q) && !a.Summary.toLowerCase().includes(q) && !a.Detailed_Summary.toLowerCase().includes(q)) return false;
+        }
+        if (sectors.length > 0 && !sectors.includes(a.Industry_Sector)) return false;
+        if (categories.length > 0 && !categories.includes(a.Event_Category)) return false;
+        if (impactFilter !== 'All') {
+          const impact = parseImpact(a.Impact_to_india);
+          if (impactFilter === 'Supply/Demand' && impact.type !== 'Supply/Demand') return false;
+          if (impactFilter === 'Regulatory' && impact.type !== 'Regulatory') return false;
+          if (impactFilter === 'Macro' && impact.type !== 'Macro') return false;
+        }
+        return true;
+      })
+    : [];
+
+  const finalArticles = dateRangeMode ? dateRangeArticles : filtered;
+
+  const dayName = selectedDate ? DAYS[selectedDate.getDay()] : '';
+
   return (
-    <div className="max-w-[1280px] mx-auto px-4 py-6">
-      {/* Date navigation */}
-      {selectedDate && (
-        <div className="flex items-center gap-3 mb-4">
-          <span className="text-[13px] text-muted-foreground">Showing news for</span>
-          <span className="font-mono text-[13px] font-medium text-foreground">{formatDateShort(selectedDate)}</span>
-          <span className="text-[11px] text-muted-foreground">· {filtered.length} article{filtered.length !== 1 ? 's' : ''}</span>
-          <div className="flex items-center gap-1 ml-2">
-            <button
-              onClick={goToPrevDate}
-              disabled={isEarliestDate}
-              className="p-1 rounded text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
-              aria-label="Previous day"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button
-              onClick={goToNextDate}
-              disabled={isLatestDate}
-              className="p-1 rounded text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
-              aria-label="Next day"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
+    <div className="max-w-[1280px] mx-auto px-4 py-5">
+      {/* Date navigation + date range toggle */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          {!dateRangeMode && selectedDate && (
+            <>
+              <span className="text-[13px] text-muted-foreground">Showing news for</span>
+              <span className="font-mono text-[13px] font-medium text-foreground">
+                {formatDateShort(selectedDate)} • {dayName}
+              </span>
+              <span className="text-[12px] text-muted-foreground">· {finalArticles.length} article{finalArticles.length !== 1 ? 's' : ''}</span>
+              <div className="flex items-center gap-1 ml-1">
+                <button
+                  onClick={goToPrevDate}
+                  disabled={isEarliestDate}
+                  className="p-1 rounded text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={goToNextDate}
+                  disabled={isLatestDate}
+                  className="p-1 rounded text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </>
+          )}
+          {dateRangeMode && (
+            <>
+              <span className="text-[13px] text-muted-foreground">Showing news for</span>
+              <span className="font-mono text-[13px] font-medium text-foreground">
+                {dateFrom ? formatDateShort(dateFrom) : (minDate ? formatDateShort(minDate) : '—')}
+                {' → '}
+                {dateTo ? formatDateShort(dateTo) : (maxDate ? formatDateShort(maxDate) : '—')}
+              </span>
+              <span className="text-[12px] text-muted-foreground">· {finalArticles.length} article{finalArticles.length !== 1 ? 's' : ''}</span>
+            </>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-[12px] text-muted-foreground">Date Range</span>
+          <Switch checked={dateRangeMode} onCheckedChange={handleDateRangeToggle} />
+        </div>
+      </div>
+
+      {/* Date range controls */}
+      {dateRangeMode && minTime > 0 && maxTime > 0 && (
+        <div className="flex items-center gap-3 mb-4 p-3 rounded-lg border border-border bg-card">
+          <Slider
+            min={minTime}
+            max={maxTime}
+            step={86400000}
+            value={[fromTime, toTime]}
+            onValueChange={handleSliderChange}
+            className="flex-1"
+          />
+          <DatePickerField label="From" value={dateFrom} onChange={setDateFrom} />
+          <DatePickerField label="To" value={dateTo} onChange={setDateTo} />
         </div>
       )}
 
       {/* Hero strip */}
-      <HeroStrip articles={filtered} />
+      <HeroStrip articles={finalArticles} />
 
-      {/* Inner tabs: Feed | Analytics */}
-      <div className="flex gap-1 border-b border-border mb-4">
-        {([
-          { key: 'feed' as NewsTab, label: "Today's Feed" },
-          { key: 'analytics' as NewsTab, label: 'Analytics' },
-        ]).map(tab => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={cn(
-              'px-4 py-2 text-[13px] font-medium transition-colors border-b-2 -mb-px',
-              activeTab === tab.key
-                ? 'border-primary text-foreground'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
-            )}
-          >
-            {tab.label}
-            <span className={cn(
-              'ml-1.5 text-[11px] rounded-full px-1.5 py-0.5 tabular-nums',
-              activeTab === tab.key ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
-            )}>{filtered.length}</span>
-          </button>
-        ))}
-      </div>
+      {/* Filter bar */}
+      <FilterBar
+        search={search}
+        onSearch={setSearch}
+        sectors={sectors}
+        onSectors={setSectors}
+        availableSectors={availableSectors}
+        categories={categories}
+        onCategories={setCategories}
+        availableCategories={availableCategories}
+        impactFilter={impactFilter}
+        onImpactFilter={setImpactFilter}
+        activeFilterCount={activeFilterCount}
+        onClear={clearFilters}
+      />
 
-      {activeTab === 'feed' ? (
-        <>
-          {/* Filter bar */}
-          <FilterBar
-            search={search}
-            onSearch={setSearch}
-            sectors={sectors}
-            onSectors={setSectors}
-            availableSectors={availableSectors}
-            categories={categories}
-            onCategories={setCategories}
-            availableCategories={availableCategories}
-            impactFilter={impactFilter}
-            onImpactFilter={setImpactFilter}
-            activeFilterCount={activeFilterCount}
-            onClear={clearFilters}
-          />
-
-          {/* Feed + Sector sidebar */}
-          <div className="flex gap-6">
-            <div className="flex-1 min-w-0 space-y-2">
-              {filtered.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 text-center">
-                  <p className="text-[13px] text-muted-foreground">No articles found for the selected filters.</p>
-                  {activeFilterCount > 0 && (
-                    <button onClick={clearFilters} className="mt-2 text-[12px] text-primary hover:underline">Clear filters</button>
-                  )}
-                </div>
-              ) : (
-                filtered.map(a => <ArticleCard key={a._id} article={a} />)
+      {/* Feed + Sector sidebar */}
+      <div className="flex gap-6">
+        <div className="flex-1 min-w-0">
+          {finalArticles.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <p className="text-[13px] text-muted-foreground">No articles found for the selected filters.</p>
+              {activeFilterCount > 0 && (
+                <button onClick={clearFilters} className="mt-2 text-[12px] text-primary hover:underline">Clear filters</button>
               )}
             </div>
-
-            {/* Sector sidebar — desktop only */}
-            <div className="hidden xl:block">
-              <SectorSidebar
-                articles={filtered}
-                activeSector={activeSector}
-                onSectorClick={handleSectorClick}
-              />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {finalArticles.map(a => <ArticleCard key={a._id} article={a} />)}
             </div>
-          </div>
-        </>
-      ) : (
-        <NewsAnalytics articles={filtered} allArticles={articles} />
-      )}
+          )}
+        </div>
+
+        {/* Sector sidebar — desktop only */}
+        <div className="hidden xl:block">
+          <SectorSidebar
+            articles={finalArticles}
+            activeSector={activeSector}
+            onSectorClick={handleSectorClick}
+          />
+        </div>
+      </div>
     </div>
+  );
+}
+
+function DatePickerField({ label, value, onChange }: { label: string; value: Date | null; onChange: (d: Date | null) => void }) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(
+            'h-8 w-[120px] justify-start text-[12px] border-border bg-card',
+            !value && 'text-muted-foreground'
+          )}
+        >
+          <CalendarIcon className="mr-1.5 h-3 w-3" />
+          {value ? format(value, 'dd MMM') : label}
+          {value && (
+            <X
+              className="ml-auto h-3 w-3 text-muted-foreground hover:text-foreground"
+              onClick={e => { e.stopPropagation(); onChange(null); }}
+            />
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="single"
+          selected={value ?? undefined}
+          onSelect={(d) => onChange(d ?? null)}
+          className="p-3 pointer-events-auto"
+        />
+      </PopoverContent>
+    </Popover>
   );
 }

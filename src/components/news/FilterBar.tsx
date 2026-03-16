@@ -18,7 +18,7 @@ interface FilterBarProps {
   onClear: () => void;
 }
 
-const IMPACT_OPTIONS = ['All', 'Has India Impact', 'No India Impact', 'Supply/Demand', 'Regulatory', 'Macro'];
+const IMPACT_OPTIONS = ['All', 'Supply/Demand', 'Regulatory', 'Macro'];
 
 export function FilterBar({
   search, onSearch, sectors, onSectors, availableSectors,
@@ -37,7 +37,7 @@ export function FilterBar({
   }, [onSearch]);
 
   return (
-    <div className="flex flex-wrap items-center gap-2 mb-4">
+    <div className="flex flex-wrap items-center gap-2 mb-5">
       {/* Search */}
       <div className="relative flex-1 min-w-[200px]">
         <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
@@ -75,7 +75,7 @@ export function FilterBar({
 
       {/* Clear */}
       {activeFilterCount > 0 && (
-        <button onClick={onClear} className="text-[11px] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+        <button onClick={onClear} className="text-[12px] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
           <X className="h-3 w-3" /> Clear filters
         </button>
       )}
@@ -109,7 +109,7 @@ function MultiDropdown({ label, options, selected, onChange }: {
       <button
         onClick={() => setOpen(!open)}
         className={cn(
-          'flex h-9 items-center gap-1.5 rounded-md border border-border bg-card px-3 text-[13px] transition-colors hover:border-surface-3',
+          'flex h-9 items-center gap-1.5 rounded-md border border-border bg-card px-3 text-[13px] transition-colors hover:border-muted-foreground/30',
           selected.length > 0 ? 'text-foreground' : 'text-muted-foreground'
         )}
       >
@@ -121,7 +121,7 @@ function MultiDropdown({ label, options, selected, onChange }: {
           <div className="p-1">
             <button
               onClick={() => onChange([])}
-              className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-[12px] hover:bg-surface-2 transition-colors"
+              className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-[12px] hover:bg-accent transition-colors"
             >
               <div className={cn(
                 'flex h-3.5 w-3.5 items-center justify-center rounded-sm border',
@@ -135,7 +135,7 @@ function MultiDropdown({ label, options, selected, onChange }: {
               <button
                 key={opt}
                 onClick={() => toggle(opt)}
-                className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-[12px] hover:bg-surface-2 transition-colors text-left"
+                className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-[12px] hover:bg-accent transition-colors text-left"
               >
                 <div className={cn(
                   'flex h-3.5 w-3.5 items-center justify-center rounded-sm border shrink-0',
@@ -172,7 +172,7 @@ function SingleDropdown({ label, options, value, onChange }: {
       <button
         onClick={() => setOpen(!open)}
         className={cn(
-          'flex h-9 items-center gap-1.5 rounded-md border border-border bg-card px-3 text-[13px] transition-colors hover:border-surface-3',
+          'flex h-9 items-center gap-1.5 rounded-md border border-border bg-card px-3 text-[13px] transition-colors hover:border-muted-foreground/30',
           value !== 'All' ? 'text-foreground' : 'text-muted-foreground'
         )}
       >
@@ -187,8 +187,8 @@ function SingleDropdown({ label, options, value, onChange }: {
                 key={opt}
                 onClick={() => { onChange(opt); setOpen(false); }}
                 className={cn(
-                  'flex w-full items-center rounded px-2 py-1.5 text-[12px] hover:bg-surface-2 transition-colors text-left',
-                  value === opt && 'text-primary'
+                  'flex w-full items-center rounded px-2 py-1.5 text-[12px] hover:bg-accent transition-colors text-left',
+                  value === opt && 'text-primary font-medium'
                 )}
               >
                 {opt}

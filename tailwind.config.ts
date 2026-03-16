@@ -78,6 +78,10 @@ export default {
           regulatory: "hsl(var(--impact-regulatory))",
           macro: "hsl(var(--impact-macro))",
         },
+        "impact-supply-bg": "hsl(var(--impact-supply-bg))",
+        "impact-regulatory-bg": "hsl(var(--impact-regulatory-bg))",
+        "impact-macro-bg": "hsl(var(--impact-macro-bg))",
+        "impact-neutral-bg": "hsl(var(--impact-neutral-bg))",
       },
       borderRadius: {
         lg: "var(--radius)",
