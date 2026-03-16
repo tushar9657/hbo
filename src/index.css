@@ -4,33 +4,33 @@
 
 @layer base {
   :root {
-    --background: 0 0% 4%;
-    --foreground: 0 0% 96%;
+    --background: 0 0% 98%;
+    --foreground: 0 0% 9%;
 
-    --card: 0 0% 7%;
-    --card-foreground: 0 0% 96%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 9%;
 
-    --popover: 0 0% 7%;
-    --popover-foreground: 0 0% 96%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 9%;
 
     --primary: 217 91% 53%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 10%;
-    --secondary-foreground: 0 0% 96%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 9%;
 
-    --muted: 0 0% 10%;
-    --muted-foreground: 0 0% 53%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 0 0% 10%;
-    --accent-foreground: 0 0% 96%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 9%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 13%;
-    --border-subtle: 0 0% 10%;
-    --input: 0 0% 13%;
+    --border: 0 0% 90%;
+    --border-subtle: 0 0% 93%;
+    --input: 0 0% 90%;
     --ring: 217 91% 53%;
 
     --radius: 0.5rem;
@@ -40,28 +40,28 @@
     --sentiment-neg: 0 72% 51%;
     --sentiment-neu: 32 95% 44%;
 
-    --sentiment-pos-bg: 142 72% 29% / 0.15;
-    --sentiment-neg-bg: 0 72% 51% / 0.15;
-    --sentiment-neu-bg: 32 95% 44% / 0.15;
+    --sentiment-pos-bg: 142 72% 29% / 0.1;
+    --sentiment-neg-bg: 0 72% 51% / 0.1;
+    --sentiment-neu-bg: 32 95% 44% / 0.1;
 
-    --sentiment-pos-border: 142 72% 29% / 0.3;
-    --sentiment-neg-border: 0 72% 51% / 0.3;
-    --sentiment-neu-border: 32 95% 44% / 0.3;
+    --sentiment-pos-border: 142 72% 29% / 0.2;
+    --sentiment-neg-border: 0 72% 51% / 0.2;
+    --sentiment-neu-border: 32 95% 44% / 0.2;
 
     /* Surface elevations */
-    --surface-0: 0 0% 4%;
-    --surface-1: 0 0% 7%;
-    --surface-2: 0 0% 10%;
-    --surface-3: 0 0% 13%;
+    --surface-0: 0 0% 98%;
+    --surface-1: 0 0% 100%;
+    --surface-2: 0 0% 96%;
+    --surface-3: 0 0% 92%;
 
     /* Sidebar */
-    --sidebar-background: 0 0% 7%;
-    --sidebar-foreground: 0 0% 96%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 9%;
     --sidebar-primary: 217 91% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 10%;
-    --sidebar-accent-foreground: 0 0% 96%;
-    --sidebar-border: 0 0% 13%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 0 0% 9%;
+    --sidebar-border: 0 0% 90%;
     --sidebar-ring: 217 91% 53%;
 
     /* Typography */
@@ -72,6 +72,12 @@
     --impact-supply: 217 91% 53%;
     --impact-regulatory: 32 95% 44%;
     --impact-macro: 271 81% 56%;
+
+    /* Impact pastel backgrounds */
+    --impact-supply-bg: 217 91% 96%;
+    --impact-regulatory-bg: 32 95% 95%;
+    --impact-macro-bg: 271 81% 96%;
+    --impact-neutral-bg: 0 0% 97%;
   }
 }
 
@@ -92,11 +98,11 @@
 
 @layer utilities {
   .card-hover-border {
-    transition: border-color 150ms ease, background-color 150ms ease;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
   }
   .card-hover-border:hover {
-    border-color: hsl(0 0% 20%);
-    background-color: hsl(0 0% 10%);
+    border-color: hsl(0 0% 82%);
+    box-shadow: 0 1px 4px hsl(0 0% 0% / 0.06);
   }
 
   .sentiment-rail-pos {

@@ -54,7 +54,6 @@ export function FilterSidebar({
   const fromTime = dateFrom?.getTime() ?? minTime;
   const toTime = dateTo?.getTime() ?? maxTime;
 
-  // Debounced search
   const [localSearch, setLocalSearch] = useState(search);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -101,7 +100,7 @@ export function FilterSidebar({
   if (!open) return null;
 
   return (
-    <aside className="w-[220px] shrink-0 border-r border-border bg-card p-4 overflow-y-auto fixed top-[48px] h-[calc(100vh-48px)] z-[100]">
+    <aside className="w-[240px] shrink-0 border-r border-border bg-card p-4 overflow-y-auto fixed top-[48px] h-[calc(100vh-48px)] z-[100]">
       <div className="flex items-center justify-between mb-5">
         <h2 className="font-sans text-sm font-semibold text-foreground">Filters</h2>
         {activeFilterCount > 0 && (
@@ -154,7 +153,7 @@ export function FilterSidebar({
           <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
           <Input
             ref={searchInputRef}
-            placeholder="Ticker or keyword... (press /)"
+            placeholder="Ticker or keyword..."
             value={localSearch}
             onChange={e => handleSearchChange(e.target.value)}
             onFocus={() => localSearch && setShowSuggestions(true)}
@@ -166,7 +165,7 @@ export function FilterSidebar({
                 <button
                   key={s}
                   onClick={() => handleSuggestionClick(s)}
-                  className="flex w-full items-center px-3 py-1.5 text-xs hover:bg-muted transition-colors text-left text-foreground"
+                  className="flex w-full items-center px-3 py-1.5 text-xs hover:bg-accent transition-colors text-left text-foreground"
                 >
                   {s}
                 </button>
@@ -274,16 +273,13 @@ function MultiSelect({ options, selected, onChange, placeholder }: {
             />
           </div>
           <div className="overflow-y-auto max-h-[190px] p-1">
-            {/* All option */}
             <button
               onClick={() => onChange([])}
-              className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-xs hover:bg-muted transition-colors text-left font-medium"
+              className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-xs hover:bg-accent transition-colors text-left font-medium"
             >
               <div className={cn(
                 'flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border',
-                isAll
-                  ? 'bg-primary border-primary text-primary-foreground'
-                  : 'border-border'
+                isAll ? 'bg-primary border-primary text-primary-foreground' : 'border-border'
               )}>
                 {isAll && <Check className="h-2.5 w-2.5" />}
               </div>
@@ -296,13 +292,11 @@ function MultiSelect({ options, selected, onChange, placeholder }: {
               <button
                 key={option}
                 onClick={() => toggle(option)}
-                className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-xs hover:bg-muted transition-colors text-left"
+                className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-xs hover:bg-accent transition-colors text-left"
               >
                 <div className={cn(
                   'flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border',
-                  selected.includes(option)
-                    ? 'bg-primary border-primary text-primary-foreground'
-                    : 'border-border'
+                  selected.includes(option) ? 'bg-primary border-primary text-primary-foreground' : 'border-border'
                 )}>
                   {selected.includes(option) && <Check className="h-2.5 w-2.5" />}
                 </div>

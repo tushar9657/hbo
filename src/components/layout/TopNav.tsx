@@ -16,13 +16,13 @@ export function TopNav({ activeSection, onSectionChange, onRefresh, isRefreshing
   const dateStr = `${String(today.getDate()).padStart(2, '0')} ${months[today.getMonth()]} ${today.getFullYear()}`;
 
   return (
-    <header className="sticky top-0 z-[200] flex h-12 items-center justify-between border-b border-border-subtle bg-background px-4">
+    <header className="sticky top-0 z-[200] flex h-12 items-center justify-between border-b border-border bg-card px-4">
       {/* Left: Logo */}
       <div className="flex items-center gap-2.5">
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="shrink-0">
-          <circle cx="10" cy="10" r="8" stroke="#f5f5f5" strokeWidth="1.5" fill="none" />
-          <circle cx="10" cy="10" r="4" stroke="#f5f5f5" strokeWidth="1" fill="none" />
-          <circle cx="10" cy="10" r="1.5" fill="#f5f5f5" />
+          <circle cx="10" cy="10" r="8" stroke="hsl(var(--foreground))" strokeWidth="1.5" fill="none" />
+          <circle cx="10" cy="10" r="4" stroke="hsl(var(--foreground))" strokeWidth="1" fill="none" />
+          <circle cx="10" cy="10" r="1.5" fill="hsl(var(--foreground))" />
         </svg>
         <span className="text-base font-medium text-foreground">Hubble</span>
       </div>
