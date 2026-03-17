@@ -1,5 +1,6 @@
 import { parseImpact } from '@/utils/impactUtils';
 import { cn } from '@/lib/utils';
+import { CATEGORY_SHORT_NAMES } from '@/constants/categories';
 import type { NewsArticle } from '@/types/news';
 
 interface ArticleCardProps {
@@ -16,15 +17,6 @@ function getImpactBgClass(type: string | null): string {
   }
 }
 
-function getImpactLabelClass(type: string | null): string {
-  switch (type) {
-    case 'Supply/Demand': return 'text-impact-supply';
-    case 'Regulatory': return 'text-impact-regulatory';
-    case 'Macro': return 'text-impact-macro';
-    default: return 'text-muted-foreground';
-  }
-}
-
 function capitalize(str: string): string {
   if (!str) return str;
   return str.charAt(0).toUpperCase() + str.slice(1);
@@ -33,6 +25,7 @@ function capitalize(str: string): string {
 export function ArticleCard({ article, onClick }: ArticleCardProps) {
   const impact = parseImpact(article.Impact_to_india);
   const bgClass = impact.hasImpact ? getImpactBgClass(impact.type) : getImpactBgClass(null);
+  const shortCategory = CATEGORY_SHORT_NAMES[article.Event_Category] || article.Event_Category;
 
   return (
     <div
@@ -42,21 +35,14 @@ export function ArticleCard({ article, onClick }: ArticleCardProps) {
       )}
       onClick={onClick}
     >
-      {/* Top row: sector + category chips + impact type */}
-      <div className="flex items-start justify-between gap-2 mb-2.5">
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="inline-flex items-center rounded-full border border-border bg-card px-2 py-0.5 text-[11px] text-muted-foreground">
-            {article.Industry_Sector}
-          </span>
-          <span className="inline-flex items-center rounded-full border border-border bg-card px-2 py-0.5 text-[11px] text-muted-foreground">
-            {article.Event_Category}
-          </span>
-        </div>
-        {impact.hasImpact && impact.type && (
-          <span className={cn('text-[11px] font-medium shrink-0', getImpactLabelClass(impact.type))}>
-            {impact.type}
-          </span>
-        )}
+      {/* Top row: sector + category chips in single line */}
+      <div className="flex items-center gap-1.5 mb-3 min-w-0">
+        <span className="inline-flex items-center rounded-full border border-border bg-card px-2 py-0.5 text-[11px] text-muted-foreground whitespace-nowrap shrink-0">
+          {article.Industry_Sector}
+        </span>
+        <span className="inline-flex items-center rounded-full border border-border bg-card px-2 py-0.5 text-[11px] text-muted-foreground whitespace-nowrap truncate">
+          {shortCategory}
+        </span>
       </div>
 
       {/* Summary - full text */}

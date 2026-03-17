@@ -76,8 +76,8 @@ export function ArticleDetailModal({ article, onClose }: ArticleDetailModalProps
             exit={{ opacity: 0, scale: 0.92, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className={cn(
-              'fixed z-[501] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
-              'w-[90vw] max-w-[680px] max-h-[80vh] overflow-y-auto',
+              'fixed z-[501] inset-0 m-auto',
+              'w-[90vw] max-w-[680px] h-fit max-h-[80vh] overflow-y-auto',
               'rounded-xl border shadow-xl p-6',
               impact?.hasImpact ? getImpactBgClass(impact.type) : getImpactBgClass(null)
             )}
