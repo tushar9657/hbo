@@ -16,6 +16,25 @@ export const EVENT_CATEGORIES = [
   "Others",
 ] as const;
 
+/** Short names for category pills on article cards */
+export const CATEGORY_SHORT_NAMES: Record<string, string> = {
+  "Corporate Actions & Shareholder Returns": "Corporate Actions",
+  "Capital Raising & Securities Issuance": "Capital Raising",
+  "Ownership, Promoter & Control": "Ownership & Control",
+  "Financial Results & Reporting": "Financial Results",
+  "Operating Metrics & Business Updates": "Operating Metrics",
+  "Business Growth, Orders & Operations": "Business Growth",
+  "M&A, Investments & Restructuring": "M&A, Investments",
+  "Credit, Debt & Liquidity": "Debt & Liquidity",
+  "Governance & Leadership": "Governance",
+  "Legal, Regulatory & Fraud": "Legal",
+  "Market Surveillance & Trading Signals": "Market Pulse",
+  "Shareholder Meetings & Investor Communication": "Shareholder Comms",
+  "Compliance & Securities Administration": "Compliance",
+  "Macro & Economy": "Macro",
+  "Others": "Others",
+};
+
 export const INDUSTRY_SECTORS = [
   "Agriculture & Agri Inputs",
   "Chemicals",
