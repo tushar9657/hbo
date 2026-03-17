@@ -97,10 +97,21 @@ export function FilterSidebar({
     onDateTo(values[1] >= maxTime ? null : newTo);
   }, [minTime, maxTime, onDateFrom, onDateTo]);
 
+  const handleLatestDay = useCallback(() => {
+    if (dateRange.max) {
+      const d = new Date(dateRange.max);
+      d.setHours(0, 0, 0, 0);
+      onDateFrom(d);
+      const dTo = new Date(dateRange.max);
+      dTo.setHours(23, 59, 59, 999);
+      onDateTo(dTo);
+    }
+  }, [dateRange.max, onDateFrom, onDateTo]);
+
   if (!open) return null;
 
   return (
-    <aside className="w-[240px] shrink-0 border-r border-border bg-card p-4 overflow-y-auto fixed top-[48px] h-[calc(100vh-48px)] z-[100]">
+    <aside className="w-[260px] shrink-0 border-r border-border bg-card p-4 overflow-y-auto fixed top-[48px] h-[calc(100vh-48px)] z-[100]">
       <div className="flex items-center justify-between mb-5">
         <h2 className="font-sans text-sm font-semibold text-foreground">Filters</h2>
         {activeFilterCount > 0 && (
@@ -160,7 +171,7 @@ export function FilterSidebar({
             className="h-9 pl-8 text-xs bg-muted/50 border-border"
           />
           {showSuggestions && filteredSuggestions.length > 0 && (
-            <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-card shadow-lg max-h-[200px] overflow-y-auto">
+            <div className="absolute z-[200] mt-1 w-full rounded-md border border-border bg-card shadow-lg max-h-[200px] overflow-y-auto">
               {filteredSuggestions.map(s => (
                 <button
                   key={s}
@@ -195,10 +206,16 @@ export function FilterSidebar({
               className="w-full"
             />
           )}
-          <div className="flex gap-2">
-            <DatePickerField label="From" value={dateFrom} onChange={onDateFrom} />
-            <DatePickerField label="To" value={dateTo} onChange={onDateTo} />
+          <div className="grid grid-cols-2 gap-2">
+            <DatePickerField label="Start Date" value={dateFrom} onChange={onDateFrom} />
+            <DatePickerField label="End Date" value={dateTo} onChange={onDateTo} />
           </div>
+          <button
+            onClick={handleLatestDay}
+            className="w-full text-xs text-primary hover:text-primary/80 font-medium py-1.5 rounded-md border border-primary/20 hover:bg-primary/5 transition-colors"
+          >
+            Latest Day
+          </button>
         </div>
       </FilterSection>
     </aside>
@@ -262,7 +279,7 @@ function MultiSelect({ options, selected, onChange, placeholder }: {
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-1 w-full rounded-md border border-border bg-card shadow-lg max-h-[240px] overflow-hidden">
+        <div className="absolute z-[200] mt-1 w-full rounded-md border border-border bg-card shadow-lg max-h-[240px] overflow-hidden">
           <div className="p-1.5">
             <Input
               placeholder="Search..."
@@ -317,21 +334,21 @@ function DatePickerField({ label, value, onChange }: { label: string; value: Dat
         <Button
           variant="outline"
           className={cn(
-            'h-8 flex-1 justify-start text-xs border-border bg-muted/50',
+            'h-8 w-full justify-start text-[11px] border-border bg-muted/50 px-2',
             !value && 'text-muted-foreground'
           )}
         >
-          <CalendarIcon className="mr-1.5 h-3 w-3" />
-          {value ? format(value, 'dd MMM') : label}
+          <CalendarIcon className="mr-1 h-3 w-3 shrink-0" />
+          <span className="truncate">{value ? format(value, 'dd MMM yy') : label}</span>
           {value && (
             <X
-              className="ml-auto h-3 w-3 text-muted-foreground hover:text-foreground"
+              className="ml-auto h-3 w-3 shrink-0 text-muted-foreground hover:text-foreground"
               onClick={e => { e.stopPropagation(); onChange(null); }}
             />
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
+      <PopoverContent className="w-auto p-0 z-[300]" align="start" side="right">
         <Calendar
           mode="single"
           selected={value ?? undefined}

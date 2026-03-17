@@ -5,7 +5,7 @@ import { HeroStrip } from '@/components/news/HeroStrip';
 import { FilterBar } from '@/components/news/FilterBar';
 import { parseImpact } from '@/utils/impactUtils';
 import { ArticleCard } from '@/components/news/ArticleCard';
-import { SectorSidebar } from '@/components/news/SectorSidebar';
+import { ArticleDetailModal } from '@/components/news/ArticleDetailModal';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -34,16 +34,7 @@ export function NewsSection({ articles }: NewsSectionProps) {
   const [dateRangeMode, setDateRangeMode] = useState(false);
   const [dateFrom, setDateFrom] = useState<Date | null>(null);
   const [dateTo, setDateTo] = useState<Date | null>(null);
-
-  const handleSectorClick = useCallback((sector: string) => {
-    if (sectors.includes(sector)) {
-      setSectors(sectors.filter(s => s !== sector));
-    } else {
-      setSectors([sector]);
-    }
-  }, [sectors, setSectors]);
-
-  const activeSector = sectors.length === 1 ? sectors[0] : null;
+  const [selectedArticle, setSelectedArticle] = useState<NewsArticle | null>(null);
 
   // Date range boundaries from allDates
   const minDate = allDates.length > 0 ? allDates[allDates.length - 1] : null;
@@ -54,37 +45,6 @@ export function NewsSection({ articles }: NewsSectionProps) {
   const toTime = dateTo?.getTime() ?? maxTime;
 
   // When in date range mode, filter articles by date range
-  const displayArticles = dateRangeMode
-    ? filtered.filter(a => {
-        if (!a._parsedDate) return false;
-        const t = a._parsedDate.getTime();
-        const from = dateFrom ? dateFrom.getTime() : minTime;
-        const to = dateTo ? dateTo.getTime() : maxTime;
-        return t >= from && t <= to;
-      })
-    : filtered;
-
-  // Since useNewsFilters already filters by selectedDate, in single-date mode we use filtered directly
-  // In date range mode, we override the date filtering
-
-  const handleDateRangeToggle = (on: boolean) => {
-    setDateRangeMode(on);
-    if (!on) {
-      setDateFrom(null);
-      setDateTo(null);
-    }
-  };
-
-  const handleSliderChange = (values: number[]) => {
-    const newFrom = new Date(values[0]);
-    const newTo = new Date(values[1]);
-    newFrom.setHours(0, 0, 0, 0);
-    newTo.setHours(23, 59, 59, 999);
-    setDateFrom(values[0] <= minTime ? null : newFrom);
-    setDateTo(values[1] >= maxTime ? null : newTo);
-  };
-
-  // For date range mode, we need all articles for the range (not filtered by single date)
   const dateRangeArticles = dateRangeMode
     ? articles.filter(a => {
         if (!a._parsedDate) return false;
@@ -93,7 +53,6 @@ export function NewsSection({ articles }: NewsSectionProps) {
         const to = dateTo ? dateTo.getTime() : maxTime;
         if (t < from || t > to) return false;
 
-        // Apply other filters
         if (search) {
           const q = search.toLowerCase();
           if (!a.Headline.toLowerCase().includes(q) && !a.Summary.toLowerCase().includes(q) && !a.Detailed_Summary.toLowerCase().includes(q)) return false;
@@ -112,6 +71,23 @@ export function NewsSection({ articles }: NewsSectionProps) {
 
   const finalArticles = dateRangeMode ? dateRangeArticles : filtered;
 
+  const handleDateRangeToggle = (on: boolean) => {
+    setDateRangeMode(on);
+    if (!on) {
+      setDateFrom(null);
+      setDateTo(null);
+    }
+  };
+
+  const handleSliderChange = (values: number[]) => {
+    const newFrom = new Date(values[0]);
+    const newTo = new Date(values[1]);
+    newFrom.setHours(0, 0, 0, 0);
+    newTo.setHours(23, 59, 59, 999);
+    setDateFrom(values[0] <= minTime ? null : newFrom);
+    setDateTo(values[1] >= maxTime ? null : newTo);
+  };
+
   const dayName = selectedDate ? DAYS[selectedDate.getDay()] : '';
 
   return (
@@ -121,11 +97,11 @@ export function NewsSection({ articles }: NewsSectionProps) {
         <div className="flex items-center gap-3">
           {!dateRangeMode && selectedDate && (
             <>
-              <span className="text-[13px] text-muted-foreground">Showing news for</span>
-              <span className="font-mono text-[13px] font-medium text-foreground">
+              <span className="text-[14px] text-muted-foreground">Showing news for</span>
+              <span className="font-mono text-[14px] font-medium text-foreground">
                 {formatDateShort(selectedDate)} • {dayName}
               </span>
-              <span className="text-[12px] text-muted-foreground">· {finalArticles.length} article{finalArticles.length !== 1 ? 's' : ''}</span>
+              <span className="text-[13px] text-muted-foreground">· {finalArticles.length} article{finalArticles.length !== 1 ? 's' : ''}</span>
               <div className="flex items-center gap-1 ml-1">
                 <button
                   onClick={goToPrevDate}
@@ -146,19 +122,19 @@ export function NewsSection({ articles }: NewsSectionProps) {
           )}
           {dateRangeMode && (
             <>
-              <span className="text-[13px] text-muted-foreground">Showing news for</span>
-              <span className="font-mono text-[13px] font-medium text-foreground">
+              <span className="text-[14px] text-muted-foreground">Showing news for</span>
+              <span className="font-mono text-[14px] font-medium text-foreground">
                 {dateFrom ? formatDateShort(dateFrom) : (minDate ? formatDateShort(minDate) : '—')}
                 {' → '}
                 {dateTo ? formatDateShort(dateTo) : (maxDate ? formatDateShort(maxDate) : '—')}
               </span>
-              <span className="text-[12px] text-muted-foreground">· {finalArticles.length} article{finalArticles.length !== 1 ? 's' : ''}</span>
+              <span className="text-[13px] text-muted-foreground">· {finalArticles.length} article{finalArticles.length !== 1 ? 's' : ''}</span>
             </>
           )}
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-[12px] text-muted-foreground">Date Range</span>
+          <span className="text-[13px] text-muted-foreground">Date Range</span>
           <Switch checked={dateRangeMode} onCheckedChange={handleDateRangeToggle} />
         </div>
       </div>
@@ -198,32 +174,26 @@ export function NewsSection({ articles }: NewsSectionProps) {
         onClear={clearFilters}
       />
 
-      {/* Feed + Sector sidebar */}
-      <div className="flex gap-6">
-        <div className="flex-1 min-w-0">
-          {finalArticles.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-              <p className="text-[13px] text-muted-foreground">No articles found for the selected filters.</p>
-              {activeFilterCount > 0 && (
-                <button onClick={clearFilters} className="mt-2 text-[12px] text-primary hover:underline">Clear filters</button>
-              )}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {finalArticles.map(a => <ArticleCard key={a._id} article={a} />)}
-            </div>
-          )}
-        </div>
-
-        {/* Sector sidebar — desktop only */}
-        <div className="hidden xl:block">
-          <SectorSidebar
-            articles={finalArticles}
-            activeSector={activeSector}
-            onSectorClick={handleSectorClick}
-          />
-        </div>
+      {/* Feed — full width, no sidebar */}
+      <div className="w-full">
+        {finalArticles.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <p className="text-[14px] text-muted-foreground">No articles found for the selected filters.</p>
+            {activeFilterCount > 0 && (
+              <button onClick={clearFilters} className="mt-2 text-[13px] text-primary hover:underline">Clear filters</button>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {finalArticles.map(a => (
+              <ArticleCard key={a._id} article={a} onClick={() => setSelectedArticle(a)} />
+            ))}
+          </div>
+        )}
       </div>
+
+      {/* Detail modal */}
+      <ArticleDetailModal article={selectedArticle} onClose={() => setSelectedArticle(null)} />
     </div>
   );
 }
@@ -249,7 +219,7 @@ function DatePickerField({ label, value, onChange }: { label: string; value: Dat
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="start">
+      <PopoverContent className="w-auto p-0 z-[300]" align="start">
         <Calendar
           mode="single"
           selected={value ?? undefined}
