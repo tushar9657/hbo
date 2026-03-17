@@ -122,7 +122,7 @@ export function FilingsSection({ onLoadingChange, onRefreshRef }: FilingsSection
         searchSuggestions={searchSuggestions}
         searchInputRef={searchInputRef}
       />
-      {sidebarOpen && <div className="w-[240px] shrink-0" />}
+      {sidebarOpen && <div className="w-[260px] shrink-0" />}
 
       <main className="flex-1 min-w-0 p-4">
         <div className="flex items-center justify-between mb-4">
