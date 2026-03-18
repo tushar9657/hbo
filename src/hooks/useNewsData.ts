@@ -3,7 +3,8 @@ import Papa from 'papaparse';
 import type { NewsArticle } from '@/types/news';
 import { parseExtractionDate } from '@/utils/dateUtils';
 
-const NEWS_CSV_URL = 'https://docs.google.com/spreadsheets/d/1b7SI9K9ZwvvmO84q84-zbRdIz4saIBW3-vJXk28MLko/export?format=csv';
+const _k = ['aHR0cHM6Ly9kb2NzLmdvb2dsZS5jb20v', 'c3ByZWFkc2hlZXRzL2QvMWI3U0k5', 'Szlad3Z2bU84NHE4NC16YlJkSXo0', 'c2FJQlczLXZKWGsyOE1Ma28vZXhw', 'b3J0P2Zvcm1hdD1jc3Y='];
+const NEWS_CSV_URL = atob(_k.join(''));
 
 export function useNewsData() {
   const [articles, setArticles] = useState<NewsArticle[]>([]);

@@ -10,7 +10,7 @@ function getDefaultDateFrom(): Date {
 }
 
 const DEFAULT_FILTERS: FilterState = {
-  sentiment: 'All',
+  sentiments: [],
   topics: [],
   subtopics: [],
   search: '',
@@ -23,7 +23,17 @@ const DEFAULT_FILTERS: FilterState = {
 export function useFilters(filings: ParsedFiling[]) {
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
 
-  const setSentiment = useCallback((s: Sentiment | 'All') => setFilters(f => ({ ...f, sentiment: s })), []);
+  const toggleSentiment = useCallback((s: Sentiment) => {
+    setFilters(f => {
+      const current = f.sentiments;
+      const next = current.includes(s)
+        ? current.filter(x => x !== s)
+        : [...current, s];
+      return { ...f, sentiments: next };
+    });
+  }, []);
+
+  const clearSentiments = useCallback(() => setFilters(f => ({ ...f, sentiments: [] })), []);
   const setTopics = useCallback((t: string[]) => setFilters(f => ({ ...f, topics: t })), []);
   const setSubtopics = useCallback((s: string[]) => setFilters(f => ({ ...f, subtopics: s })), []);
   const setSearch = useCallback((s: string) => setFilters(f => ({ ...f, search: s })), []);
@@ -35,7 +45,7 @@ export function useFilters(filings: ParsedFiling[]) {
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
-    if (filters.sentiment !== 'All') count++;
+    if (filters.sentiments.length > 0) count++;
     if (filters.topics.length > 0) count++;
     if (filters.subtopics.length > 0) count++;
     if (filters.search) count++;
@@ -47,7 +57,7 @@ export function useFilters(filings: ParsedFiling[]) {
 
   const filtered = useMemo(() => {
     return filings.filter(f => {
-      if (filters.sentiment !== 'All' && f.AI_Sentiment !== filters.sentiment) return false;
+      if (filters.sentiments.length > 0 && !filters.sentiments.includes(f.AI_Sentiment as Sentiment)) return false;
       if (filters.topics.length > 0 && !filters.topics.includes(f.AI_Topic)) return false;
       if (filters.subtopics.length > 0 && !filters.subtopics.includes(f.AI_Subtopic)) return false;
       if (filters.search) {
@@ -93,7 +103,6 @@ export function useFilters(filings: ParsedFiling[]) {
     return { pos, neg, neu, total: filtered.length };
   }, [filtered]);
 
-  // Date range from data
   const dateRange = useMemo(() => {
     let min: Date | null = null;
     let max: Date | null = null;
@@ -114,7 +123,8 @@ export function useFilters(filings: ParsedFiling[]) {
     sentimentCounts,
     activeFilterCount,
     dateRange,
-    setSentiment,
+    toggleSentiment,
+    clearSentiments,
     setTopics,
     setSubtopics,
     setSearch,

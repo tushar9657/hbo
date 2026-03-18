@@ -28,9 +28,9 @@ export function getSentimentBadgeClasses(sentiment: Sentiment): string {
 
 export function getSentimentLabel(sentiment: Sentiment): string {
   switch (sentiment) {
-    case 'Positive': return 'POS';
-    case 'Negative': return 'NEG';
-    default: return 'NEU';
+    case 'Positive': return 'Positive';
+    case 'Negative': return 'Negative';
+    default: return 'Neutral';
   }
 }
 
