@@ -5,15 +5,40 @@ import { FilterSidebar } from '@/components/FilterSidebar';
 import { FeedTab } from '@/components/tabs/FeedTab';
 import { ChartsTab } from '@/components/tabs/ChartsTab';
 import { ActiveFilterPills } from '@/components/ActiveFilterPills';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import type { TabType } from '@/types/filing';
+import { format } from 'date-fns';
+import type { TabType, ParsedFiling } from '@/types/filing';
 
 const TABS: { key: TabType; label: string }[] = [
   { key: 'feed', label: 'Feed' },
   { key: 'charts', label: 'Charts' },
 ];
+
+function exportFilingsToCSV(filings: ParsedFiling[]) {
+  const headers = ['Ticker', 'Title', 'Sentiment', 'Topic', 'Subtopic', 'Summary', 'Publication Date', 'Secondary Topic', 'Secondary Subtopic', 'Status'];
+  const rows = filings.map(f => [
+    `"${(f.Ticker || '').replace(/"/g, '""')}"`,
+    `"${(f.Title || '').replace(/"/g, '""')}"`,
+    `"${(f.AI_Sentiment || '').replace(/"/g, '""')}"`,
+    `"${(f.AI_Topic || '').replace(/"/g, '""')}"`,
+    `"${(f.AI_Subtopic || '').replace(/"/g, '""')}"`,
+    `"${(f.AI_Summary || '').replace(/"/g, '""')}"`,
+    `"${(f.PubDateRaw || '').replace(/"/g, '""')}"`,
+    `"${(f.AI_Topic_2 || '').replace(/"/g, '""')}"`,
+    `"${(f.AI_Subtopic_2 || '').replace(/"/g, '""')}"`,
+    `"${(f.Status || '').replace(/"/g, '""')}"`,
+  ]);
+  const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `hubble-filings-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 interface FilingsSectionProps {
   onLoadingChange?: (loading: boolean) => void;
@@ -24,7 +49,7 @@ export function FilingsSection({ onLoadingChange, onRefreshRef }: FilingsSection
   const { filings, loading, error, lastFetched, fetchFilings } = useFilings();
   const {
     filters, filtered, topics, subtopics, sentimentCounts, activeFilterCount, dateRange,
-    setSentiment, setTopics, setSubtopics, setSearch, setDateFrom, setDateTo, setTimeframe, setSelectedDate, clearAll,
+    toggleSentiment, clearSentiments, setTopics, setSubtopics, setSearch, setDateFrom, setDateTo, setTimeframe, setSelectedDate, clearAll,
   } = useFilters(filings);
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -100,8 +125,9 @@ export function FilingsSection({ onLoadingChange, onRefreshRef }: FilingsSection
     <div className="flex flex-1">
       <FilterSidebar
         open={sidebarOpen}
-        sentiment={filters.sentiment}
-        onSentiment={setSentiment}
+        sentiments={filters.sentiments}
+        onToggleSentiment={toggleSentiment}
+        onClearSentiments={clearSentiments}
         search={filters.search}
         onSearch={setSearch}
         selectedTopics={filters.topics}
@@ -146,18 +172,30 @@ export function FilingsSection({ onLoadingChange, onRefreshRef }: FilingsSection
               </button>
             ))}
           </div>
-          <button
-            onClick={() => setSidebarOpen(s => !s)}
-            className="text-[12px] text-muted-foreground hover:text-foreground transition-colors md:hidden"
-          >
-            {sidebarOpen ? 'Hide Filters' : 'Filters'}
-            {!sidebarOpen && activeFilterCount > 0 && ` (${activeFilterCount})`}
-          </button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => exportFilingsToCSV(filtered)}
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+              title="Export to CSV"
+            >
+              <Download className="h-4 w-4" />
+            </Button>
+            <button
+              onClick={() => setSidebarOpen(s => !s)}
+              className="text-[12px] text-muted-foreground hover:text-foreground transition-colors md:hidden"
+            >
+              {sidebarOpen ? 'Hide Filters' : 'Filters'}
+              {!sidebarOpen && activeFilterCount > 0 && ` (${activeFilterCount})`}
+            </button>
+          </div>
         </div>
 
         <ActiveFilterPills
           filters={filters}
-          onClearSentiment={() => setSentiment('All')}
+          onClearSentiments={clearSentiments}
+          onRemoveSentiment={(s) => toggleSentiment(s)}
           onRemoveTopic={(t) => setTopics(filters.topics.filter(x => x !== t))}
           onRemoveSubtopic={(s) => setSubtopics(filters.subtopics.filter(x => x !== s))}
           onClearSearch={() => setSearch('')}

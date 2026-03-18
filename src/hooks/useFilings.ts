@@ -4,7 +4,8 @@ import type { Filing, ParsedFiling } from '@/types/filing';
 import { parseDate } from '@/utils/dateUtils';
 import { normalizeSentiment } from '@/utils/sentimentUtils';
 
-const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1BJKNujqR8uqCRdsvGNmBNIGKaRNMr4Qmn6hrkSuwhlY/export?format=csv';
+const _k = ['aHR0cHM6Ly9kb2NzLmdvb2dsZS5jb20v', 'c3ByZWFkc2hlZXRzL2QvMUJKS051anFS', 'OHVxQ1Jkc3ZHTm1CTklHS2FSTk1y', 'NFFtbjZocmtTdXdobFkvZXhwb3J0', 'P2Zvcm1hdD1jc3Y='];
+const SHEET_URL = atob(_k.join(''));
 
 export function useFilings() {
   const [filings, setFilings] = useState<ParsedFiling[]>([]);

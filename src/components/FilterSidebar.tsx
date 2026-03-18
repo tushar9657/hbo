@@ -11,8 +11,9 @@ import type { Sentiment, TimeFrame } from '@/types/filing';
 
 interface SidebarProps {
   open: boolean;
-  sentiment: Sentiment | 'All';
-  onSentiment: (s: Sentiment | 'All') => void;
+  sentiments: Sentiment[];
+  onToggleSentiment: (s: Sentiment) => void;
+  onClearSentiments: () => void;
   search: string;
   onSearch: (s: string) => void;
   selectedTopics: string[];
@@ -34,15 +35,14 @@ interface SidebarProps {
   searchInputRef?: (node: HTMLInputElement | null) => void;
 }
 
-const SENTIMENT_BUTTONS: { value: Sentiment | 'All'; label: string; activeClass: string }[] = [
-  { value: 'All', label: 'All', activeClass: 'bg-primary text-primary-foreground' },
-  { value: 'Positive', label: 'Pos', activeClass: 'bg-sentiment-pos/15 text-sentiment-pos border border-sentiment-pos-border' },
-  { value: 'Negative', label: 'Neg', activeClass: 'bg-sentiment-neg/15 text-sentiment-neg border border-sentiment-neg-border' },
-  { value: 'Neutral', label: 'Neu', activeClass: 'bg-sentiment-neu/15 text-sentiment-neu border border-sentiment-neu-border' },
+const SENTIMENT_OPTIONS: { value: Sentiment; label: string; activeClass: string }[] = [
+  { value: 'Positive', label: 'Positive', activeClass: 'bg-sentiment-pos/15 text-sentiment-pos border border-sentiment-pos-border' },
+  { value: 'Negative', label: 'Negative', activeClass: 'bg-sentiment-neg/15 text-sentiment-neg border border-sentiment-neg-border' },
+  { value: 'Neutral', label: 'Neutral', activeClass: 'bg-sentiment-neu/15 text-sentiment-neu border border-sentiment-neu-border' },
 ];
 
 export function FilterSidebar({
-  open, sentiment, onSentiment, search, onSearch,
+  open, sentiments, onToggleSentiment, onClearSentiments, search, onSearch,
   selectedTopics, onTopics, topics,
   selectedSubtopics, onSubtopics, subtopics,
   dateFrom, onDateFrom, dateTo, onDateTo, dateRange,
@@ -108,6 +108,8 @@ export function FilterSidebar({
     }
   }, [dateRange.max, onDateFrom, onDateTo]);
 
+  const isAllSentiment = sentiments.length === 0;
+
   if (!open) return null;
 
   return (
@@ -141,14 +143,26 @@ export function FilterSidebar({
       </FilterSection>
 
       <FilterSection label="Sentiment">
-        <div className="flex flex-wrap gap-1.5">
-          {SENTIMENT_BUTTONS.map(s => (
+        <div className="flex flex-col gap-1.5">
+          {/* All button */}
+          <button
+            onClick={onClearSentiments}
+            className={cn(
+              'rounded-full px-3 py-1 text-xs font-medium transition-all text-left',
+              isAllSentiment
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-accent'
+            )}
+          >
+            All
+          </button>
+          {SENTIMENT_OPTIONS.map(s => (
             <button
               key={s.value}
-              onClick={() => onSentiment(s.value)}
+              onClick={() => onToggleSentiment(s.value)}
               className={cn(
-                'rounded-full px-3 py-1 text-xs font-medium transition-all',
-                sentiment === s.value
+                'rounded-full px-3 py-1 text-xs font-medium transition-all text-left',
+                sentiments.includes(s.value)
                   ? s.activeClass
                   : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-accent'
               )}

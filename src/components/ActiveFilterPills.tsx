@@ -1,10 +1,10 @@
 import { X } from 'lucide-react';
 import { format } from 'date-fns';
-import type { Sentiment, TimeFrame } from '@/types/filing';
+import type { Sentiment } from '@/types/filing';
 
 interface ActiveFilterPillsProps {
   filters: {
-    sentiment: Sentiment | 'All';
+    sentiments: Sentiment[];
     topics: string[];
     subtopics: string[];
     search: string;
@@ -12,7 +12,8 @@ interface ActiveFilterPillsProps {
     dateTo: Date | null;
     selectedDate: Date | null;
   };
-  onClearSentiment: () => void;
+  onClearSentiments: () => void;
+  onRemoveSentiment: (s: Sentiment) => void;
   onRemoveTopic: (t: string) => void;
   onRemoveSubtopic: (s: string) => void;
   onClearSearch: () => void;
@@ -23,14 +24,14 @@ interface ActiveFilterPillsProps {
 }
 
 export function ActiveFilterPills({
-  filters, onClearSentiment, onRemoveTopic, onRemoveSubtopic,
+  filters, onRemoveSentiment, onRemoveTopic, onRemoveSubtopic,
   onClearSearch, onClearDateFrom, onClearDateTo, onClearSelectedDate, onClearAll,
 }: ActiveFilterPillsProps) {
   const pills: { label: string; onRemove: () => void }[] = [];
 
-  if (filters.sentiment !== 'All') {
-    pills.push({ label: `Sentiment: ${filters.sentiment}`, onRemove: onClearSentiment });
-  }
+  filters.sentiments.forEach(s => {
+    pills.push({ label: `Sentiment: ${s}`, onRemove: () => onRemoveSentiment(s) });
+  });
   filters.topics.forEach(t => {
     pills.push({ label: `Topic: ${t.length > 20 ? t.slice(0, 20) + '…' : t}`, onRemove: () => onRemoveTopic(t) });
   });

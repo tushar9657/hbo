@@ -28,7 +28,7 @@ export type TimeFrame = 'daily' | 'weekly';
 export type TabType = 'feed' | 'charts';
 
 export interface FilterState {
-  sentiment: Sentiment | 'All';
+  sentiments: Sentiment[];
   topics: string[];
   subtopics: string[];
   search: string;
