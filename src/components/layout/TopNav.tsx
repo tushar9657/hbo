@@ -1,4 +1,5 @@
-import { RefreshCw } from 'lucide-react';
+import { useState } from 'react';
+import { RefreshCw, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 type Section = 'news' | 'filings';
@@ -8,9 +9,10 @@ interface TopNavProps {
   onSectionChange: (s: Section) => void;
   onRefresh: () => void;
   isRefreshing: boolean;
+  onSearchOpen?: () => void;
 }
 
-export function TopNav({ activeSection, onSectionChange, onRefresh, isRefreshing }: TopNavProps) {
+export function TopNav({ activeSection, onSectionChange, onRefresh, isRefreshing, onSearchOpen }: TopNavProps) {
   const today = new Date();
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const dateStr = `${String(today.getDate()).padStart(2, '0')} ${months[today.getMonth()]} ${today.getFullYear()}`;
@@ -48,8 +50,18 @@ export function TopNav({ activeSection, onSectionChange, onRefresh, isRefreshing
         ))}
       </nav>
 
-      {/* Right: Refresh + date */}
+      {/* Right: Search + Refresh + date */}
       <div className="flex items-center gap-3">
+        {onSearchOpen && (
+          <button
+            onClick={onSearchOpen}
+            className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Global Search"
+            title="Search across news & filings (⌘K)"
+          >
+            <Search className="h-3.5 w-3.5" />
+          </button>
+        )}
         <button
           onClick={onRefresh}
           disabled={isRefreshing}

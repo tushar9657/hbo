@@ -7,6 +7,7 @@ import type { NewsArticle } from '@/types/news';
 interface ArticleCardProps {
   article: NewsArticle;
   onClick: () => void;
+  isRead?: boolean;
 }
 
 function getImpactBgClass(type: string | null): string {
@@ -23,7 +24,7 @@ function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-export function ArticleCard({ article, onClick }: ArticleCardProps) {
+export function ArticleCard({ article, onClick, isRead }: ArticleCardProps) {
   const impact = parseImpact(article.Impact_to_india);
   const bgClass = impact.hasImpact ? getImpactBgClass(impact.type) : getImpactBgClass(null);
   const shortCategory = CATEGORY_SHORT_NAMES[article.Event_Category] || article.Event_Category;
@@ -33,7 +34,8 @@ export function ArticleCard({ article, onClick }: ArticleCardProps) {
     <div
       className={cn(
         'rounded-lg border cursor-pointer card-hover-border transition-all p-5 flex flex-col h-full',
-        bgClass
+        bgClass,
+        isRead && 'opacity-55'
       )}
       onClick={onClick}
     >

@@ -8,17 +8,24 @@ import { cn } from '@/lib/utils';
 
 interface FilingCardProps {
   filing: ParsedFiling;
+  isRead?: boolean;
+  onOpen?: () => void;
 }
 
 const cardTransition = { type: "tween" as const, ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number], duration: 0.2 };
 
-export function FilingCard({ filing }: FilingCardProps) {
+export function FilingCard({ filing, isRead, onOpen }: FilingCardProps) {
   const [expanded, setExpanded] = useState(false);
   const sentiment = filing.AI_Sentiment as 'Positive' | 'Negative' | 'Neutral';
 
   const handleLinkClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
   }, []);
+
+  const handleClick = useCallback(() => {
+    onOpen?.();
+    setExpanded(e => !e);
+  }, [onOpen]);
 
   return (
     <motion.div
@@ -28,9 +35,10 @@ export function FilingCard({ filing }: FilingCardProps) {
       transition={cardTransition}
       className={cn(
         'border border-border bg-card card-hover-border cursor-pointer rounded-lg card-shadow',
-        getSentimentRailClass(sentiment)
+        getSentimentRailClass(sentiment),
+        isRead && 'opacity-55'
       )}
-      onClick={() => setExpanded(e => !e)}
+      onClick={handleClick}
     >
       <div className="p-4">
         <div className="flex items-start justify-between gap-3">

@@ -43,9 +43,12 @@ function exportFilingsToCSV(filings: ParsedFiling[]) {
 interface FilingsSectionProps {
   onLoadingChange?: (loading: boolean) => void;
   onRefreshRef?: (fn: () => void) => void;
+  onFilingsData?: (filings: ParsedFiling[]) => void;
+  readIds?: Set<string>;
+  onMarkRead?: (id: string) => void;
 }
 
-export function FilingsSection({ onLoadingChange, onRefreshRef }: FilingsSectionProps) {
+export function FilingsSection({ onLoadingChange, onRefreshRef, onFilingsData, readIds, onMarkRead }: FilingsSectionProps) {
   const { filings, loading, error, lastFetched, fetchFilings } = useFilings();
   const {
     filters, filtered, topics, subtopics, sentimentCounts, activeFilterCount, dateRange,
@@ -57,6 +60,7 @@ export function FilingsSection({ onLoadingChange, onRefreshRef }: FilingsSection
 
   useEffect(() => { onLoadingChange?.(loading); }, [loading, onLoadingChange]);
   useEffect(() => { onRefreshRef?.(fetchFilings); }, [fetchFilings, onRefreshRef]);
+  useEffect(() => { onFilingsData?.(filings); }, [filings, onFilingsData]);
 
   const searchSuggestions = useMemo(() => {
     const set = new Set<string>();
@@ -206,7 +210,13 @@ export function FilingsSection({ onLoadingChange, onRefreshRef }: FilingsSection
         />
 
         {activeTab === 'feed' && (
-          <FeedTab filings={filtered} selectedDate={filters.selectedDate} onClearDate={() => setSelectedDate(null)} />
+          <FeedTab
+            filings={filtered}
+            selectedDate={filters.selectedDate}
+            onClearDate={() => setSelectedDate(null)}
+            readIds={readIds}
+            onMarkRead={onMarkRead}
+          />
         )}
         {activeTab === 'charts' && (
           <ChartsTab filings={filtered} timeframe={filters.timeframe} onTopicFilter={handleTopicFilter} onDateFilter={handleTimelineDate} />
