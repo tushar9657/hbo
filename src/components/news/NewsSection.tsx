@@ -129,7 +129,6 @@ export function NewsSection({ articles }: NewsSectionProps) {
               <span className="font-mono text-[14px] font-medium text-foreground">
                 {formatDateShort(selectedDate)} • {dayName}
               </span>
-              <span className="text-[13px] text-muted-foreground">· {finalArticles.length} article{finalArticles.length !== 1 ? 's' : ''}</span>
               <div className="flex items-center gap-1 ml-1">
                 <button onClick={goToPrevDate} disabled={isEarliestDate} className="p-1 rounded text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors">
                   <ChevronLeft className="h-4 w-4" />
