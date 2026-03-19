@@ -147,7 +147,6 @@ export function NewsSection({ articles }: NewsSectionProps) {
                 {' → '}
                 {dateTo ? formatDateShort(dateTo) : (maxDate ? formatDateShort(maxDate) : '—')}
               </span>
-              <span className="text-[13px] text-muted-foreground">· {finalArticles.length} article{finalArticles.length !== 1 ? 's' : ''}</span>
             </>
           )}
         </div>
