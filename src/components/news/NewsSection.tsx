@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, CalendarIcon, X, ArrowUpDown, Download } from 'lucide-react';
 import { useNewsFilters } from '@/hooks/useNewsFilters';
 import { HeroStrip } from '@/components/news/HeroStrip';
@@ -18,9 +18,12 @@ import type { NewsArticle } from '@/types/news';
 
 interface NewsSectionProps {
   articles: NewsArticle[];
+  readIds?: Set<string>;
+  onMarkRead?: (id: string) => void;
 }
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const PAGE_SIZE = 30;
 
 function exportNewsToCSV(articles: NewsArticle[]) {
   const headers = ['Headline', 'Summary', 'Detailed Summary', 'India Impact', 'Event Category', 'Industry Sector', 'Extraction Date'];
@@ -43,7 +46,7 @@ function exportNewsToCSV(articles: NewsArticle[]) {
   URL.revokeObjectURL(url);
 }
 
-export function NewsSection({ articles }: NewsSectionProps) {
+export function NewsSection({ articles, readIds, onMarkRead }: NewsSectionProps) {
   const {
     filtered, selectedDate, setSelectedDate, goToPrevDate, goToNextDate,
     isLatestDate, isEarliestDate, allDates,
@@ -57,6 +60,7 @@ export function NewsSection({ articles }: NewsSectionProps) {
   const [dateTo, setDateTo] = useState<Date | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<NewsArticle | null>(null);
   const [sortAsc, setSortAsc] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const minDate = allDates.length > 0 ? allDates[allDates.length - 1] : null;
   const maxDate = allDates.length > 0 ? allDates[0] : null;
@@ -99,6 +103,9 @@ export function NewsSection({ articles }: NewsSectionProps) {
     });
   }, [preSort, dateRangeMode, sortAsc]);
 
+  const visibleArticles = useMemo(() => finalArticles.slice(0, visibleCount), [finalArticles, visibleCount]);
+  const hasMore = visibleCount < finalArticles.length;
+
   const handleDateRangeToggle = (on: boolean) => {
     setDateRangeMode(on);
     if (!on) {
@@ -115,6 +122,11 @@ export function NewsSection({ articles }: NewsSectionProps) {
     setDateFrom(values[0] <= minTime ? null : newFrom);
     setDateTo(values[1] >= maxTime ? null : newTo);
   };
+
+  const handleArticleClick = useCallback((a: NewsArticle) => {
+    onMarkRead?.(a._id);
+    setSelectedArticle(a);
+  }, [onMarkRead]);
 
   const dayName = selectedDate ? DAYS[selectedDate.getDay()] : '';
 
@@ -214,20 +226,39 @@ export function NewsSection({ articles }: NewsSectionProps) {
         onClear={clearFilters}
       />
 
-      <div className="w-full">
+      <div className="w-full min-h-[400px]">
         {finalArticles.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="flex flex-col items-center justify-center py-20 text-center min-h-[400px]">
             <p className="text-[14px] text-muted-foreground">No articles found for the selected filters.</p>
             {activeFilterCount > 0 && (
               <button onClick={clearFilters} className="mt-2 text-[13px] text-primary hover:underline">Clear filters</button>
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {finalArticles.map(a => (
-              <ArticleCard key={a._id} article={a} onClick={() => setSelectedArticle(a)} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {visibleArticles.map(a => (
+                <ArticleCard
+                  key={a._id}
+                  article={a}
+                  onClick={() => handleArticleClick(a)}
+                  isRead={readIds?.has(a._id)}
+                />
+              ))}
+            </div>
+            {hasMore && (
+              <div className="flex justify-center mt-6">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setVisibleCount(c => c + PAGE_SIZE)}
+                  className="text-[13px] text-muted-foreground"
+                >
+                  Load more ({finalArticles.length - visibleCount} remaining)
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </div>
 
