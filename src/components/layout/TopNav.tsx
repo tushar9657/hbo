@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { RefreshCw, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type Section = 'news' | 'filings';
+type Section = 'news' | 'filings' | 'deepdive';
 
 interface TopNavProps {
   activeSection: Section;
@@ -31,7 +31,7 @@ export function TopNav({ activeSection, onSectionChange, onRefresh, isRefreshing
 
       {/* Centre: Nav tabs */}
       <nav className="flex items-center gap-1">
-        {(['news', 'filings'] as Section[]).map(s => (
+        {(['news', 'filings', 'deepdive'] as Section[]).map(s => (
           <button
             key={s}
             onClick={() => onSectionChange(s)}
@@ -42,7 +42,7 @@ export function TopNav({ activeSection, onSectionChange, onRefresh, isRefreshing
                 : 'text-muted-foreground hover:text-foreground'
             )}
           >
-            {s === 'news' ? 'News' : 'Filings'}
+            {s === 'news' ? 'News' : s === 'filings' ? 'Filings' : 'DeepDive'}
             {activeSection === s && (
               <span className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] w-8 bg-primary rounded-full" />
             )}

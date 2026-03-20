@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+
 import { Search, X, ChevronDown, Check, CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -97,8 +98,24 @@ export function FilterSidebar({
     onDateTo(values[1] >= maxTime ? null : newTo);
   }, [minTime, maxTime, onDateFrom, onDateTo]);
 
+  const isLatestDayActive = useMemo(() => {
+    if (!dateRange.max || !dateFrom || !dateTo) return false;
+    const maxDay = new Date(dateRange.max);
+    maxDay.setHours(0, 0, 0, 0);
+    const fromDay = new Date(dateFrom);
+    fromDay.setHours(0, 0, 0, 0);
+    return fromDay.getTime() === maxDay.getTime();
+  }, [dateFrom, dateTo, dateRange.max]);
+
   const handleLatestDay = useCallback(() => {
-    if (dateRange.max) {
+    if (isLatestDayActive) {
+      // Toggle OFF → reset to last 7 days
+      const d = new Date();
+      d.setDate(d.getDate() - 7);
+      d.setHours(0, 0, 0, 0);
+      onDateFrom(d);
+      onDateTo(null);
+    } else if (dateRange.max) {
       const d = new Date(dateRange.max);
       d.setHours(0, 0, 0, 0);
       onDateFrom(d);
@@ -106,14 +123,14 @@ export function FilterSidebar({
       dTo.setHours(23, 59, 59, 999);
       onDateTo(dTo);
     }
-  }, [dateRange.max, onDateFrom, onDateTo]);
+  }, [isLatestDayActive, dateRange.max, onDateFrom, onDateTo]);
 
   const isAllSentiment = sentiments.length === 0;
 
   if (!open) return null;
 
   return (
-    <aside className="w-[260px] shrink-0 border-r border-border bg-card p-4 overflow-y-auto fixed top-[48px] h-[calc(100vh-48px)] z-[100]">
+    <aside className="w-[312px] shrink-0 border-r border-border bg-card p-4 overflow-y-auto fixed top-[48px] h-[calc(100vh-48px)] z-[100]">
       <div className="flex items-center justify-between mb-5">
         <h2 className="font-sans text-sm font-semibold text-foreground">Filters</h2>
         {activeFilterCount > 0 && (
@@ -226,7 +243,12 @@ export function FilterSidebar({
           </div>
           <button
             onClick={handleLatestDay}
-            className="w-full text-xs text-primary hover:text-primary/80 font-medium py-1.5 rounded-md border border-primary/20 hover:bg-primary/5 transition-colors"
+            className={cn(
+              'w-full text-xs font-medium py-1.5 rounded-md border transition-colors',
+              isLatestDayActive
+                ? 'bg-primary text-primary-foreground border-primary'
+                : 'text-primary hover:text-primary/80 border-primary/20 hover:bg-primary/5'
+            )}
           >
             Latest Day
           </button>
@@ -271,11 +293,26 @@ function MultiSelect({ options, selected, onChange, placeholder }: {
     return options.filter(o => o.toLowerCase().includes(q));
   }, [options, search]);
 
-  const toggle = (item: string) => {
-    onChange(selected.includes(item) ? selected.filter(s => s !== item) : [...selected, item]);
+  const isAll = selected.length === 0;
+  const allSelected = options.length > 0 && selected.length === options.length;
+
+  const handleAllClick = () => {
+    if (isAll || allSelected) {
+      onChange([]);
+    } else {
+      onChange([...options]);
+    }
   };
 
-  const isAll = selected.length === 0;
+  const toggle = (item: string) => {
+    const next = selected.includes(item) ? selected.filter(s => s !== item) : [...selected, item];
+    // If all items manually selected, reset to "All" (empty = all)
+    if (next.length === options.length) {
+      onChange([]);
+    } else {
+      onChange(next);
+    }
+  };
 
   return (
     <div ref={ref} className="relative">
@@ -305,14 +342,14 @@ function MultiSelect({ options, selected, onChange, placeholder }: {
           </div>
           <div className="overflow-y-auto max-h-[190px] p-1">
             <button
-              onClick={() => onChange([])}
+              onClick={handleAllClick}
               className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-xs hover:bg-accent transition-colors text-left font-medium"
             >
               <div className={cn(
                 'flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border',
-                isAll ? 'bg-primary border-primary text-primary-foreground' : 'border-border'
+                (isAll || allSelected) ? 'bg-primary border-primary text-primary-foreground' : 'border-border'
               )}>
-                {isAll && <Check className="h-2.5 w-2.5" />}
+                {(isAll || allSelected) && <Check className="h-2.5 w-2.5" />}
               </div>
               <span>All</span>
             </button>
