@@ -100,8 +100,24 @@ function MultiDropdown({ label, options, selected, onChange }: {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  const isAll = selected.length === 0;
+  const allSelected = options.length > 0 && selected.length === options.length;
+
+  const handleAllClick = () => {
+    if (isAll || allSelected) {
+      onChange([]);
+    } else {
+      onChange([...options]);
+    }
+  };
+
   const toggle = (item: string) => {
-    onChange(selected.includes(item) ? selected.filter(s => s !== item) : [...selected, item]);
+    const next = selected.includes(item) ? selected.filter(s => s !== item) : [...selected, item];
+    if (next.length === options.length) {
+      onChange([]);
+    } else {
+      onChange(next);
+    }
   };
 
   return (
