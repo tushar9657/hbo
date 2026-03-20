@@ -97,8 +97,24 @@ export function FilterSidebar({
     onDateTo(values[1] >= maxTime ? null : newTo);
   }, [minTime, maxTime, onDateFrom, onDateTo]);
 
+  const isLatestDayActive = useMemo(() => {
+    if (!dateRange.max || !dateFrom || !dateTo) return false;
+    const maxDay = new Date(dateRange.max);
+    maxDay.setHours(0, 0, 0, 0);
+    const fromDay = new Date(dateFrom);
+    fromDay.setHours(0, 0, 0, 0);
+    return fromDay.getTime() === maxDay.getTime();
+  }, [dateFrom, dateTo, dateRange.max]);
+
   const handleLatestDay = useCallback(() => {
-    if (dateRange.max) {
+    if (isLatestDayActive) {
+      // Toggle OFF → reset to last 7 days
+      const d = new Date();
+      d.setDate(d.getDate() - 7);
+      d.setHours(0, 0, 0, 0);
+      onDateFrom(d);
+      onDateTo(null);
+    } else if (dateRange.max) {
       const d = new Date(dateRange.max);
       d.setHours(0, 0, 0, 0);
       onDateFrom(d);
@@ -106,7 +122,7 @@ export function FilterSidebar({
       dTo.setHours(23, 59, 59, 999);
       onDateTo(dTo);
     }
-  }, [dateRange.max, onDateFrom, onDateTo]);
+  }, [isLatestDayActive, dateRange.max, onDateFrom, onDateTo]);
 
   const isAllSentiment = sentiments.length === 0;
 
