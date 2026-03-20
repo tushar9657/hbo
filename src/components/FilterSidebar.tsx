@@ -342,14 +342,14 @@ function MultiSelect({ options, selected, onChange, placeholder }: {
           </div>
           <div className="overflow-y-auto max-h-[190px] p-1">
             <button
-              onClick={() => onChange([])}
+              onClick={handleAllClick}
               className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-xs hover:bg-accent transition-colors text-left font-medium"
             >
               <div className={cn(
                 'flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm border',
-                isAll ? 'bg-primary border-primary text-primary-foreground' : 'border-border'
+                (isAll || allSelected) ? 'bg-primary border-primary text-primary-foreground' : 'border-border'
               )}>
-                {isAll && <Check className="h-2.5 w-2.5" />}
+                {(isAll || allSelected) && <Check className="h-2.5 w-2.5" />}
               </div>
               <span>All</span>
             </button>
