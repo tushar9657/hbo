@@ -293,11 +293,26 @@ function MultiSelect({ options, selected, onChange, placeholder }: {
     return options.filter(o => o.toLowerCase().includes(q));
   }, [options, search]);
 
-  const toggle = (item: string) => {
-    onChange(selected.includes(item) ? selected.filter(s => s !== item) : [...selected, item]);
+  const isAll = selected.length === 0;
+  const allSelected = options.length > 0 && selected.length === options.length;
+
+  const handleAllClick = () => {
+    if (isAll || allSelected) {
+      onChange([]);
+    } else {
+      onChange([...options]);
+    }
   };
 
-  const isAll = selected.length === 0;
+  const toggle = (item: string) => {
+    const next = selected.includes(item) ? selected.filter(s => s !== item) : [...selected, item];
+    // If all items manually selected, reset to "All" (empty = all)
+    if (next.length === options.length) {
+      onChange([]);
+    } else {
+      onChange(next);
+    }
+  };
 
   return (
     <div ref={ref} className="relative">
