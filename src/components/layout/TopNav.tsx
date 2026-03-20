@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { RefreshCw, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-type Section = 'news' | 'filings';
+type Section = 'news' | 'filings' | 'deepdive';
 
 interface TopNavProps {
   activeSection: Section;
