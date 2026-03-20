@@ -136,14 +136,14 @@ function MultiDropdown({ label, options, selected, onChange }: {
         <div className="absolute z-50 mt-1 w-[240px] rounded-md border border-border bg-card shadow-lg max-h-[280px] overflow-y-auto">
           <div className="p-1">
             <button
-              onClick={() => onChange([])}
+              onClick={handleAllClick}
               className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-[12px] hover:bg-accent transition-colors"
             >
               <div className={cn(
                 'flex h-3.5 w-3.5 items-center justify-center rounded-sm border',
-                selected.length === 0 ? 'bg-primary border-primary text-primary-foreground' : 'border-border'
+                (isAll || allSelected) ? 'bg-primary border-primary text-primary-foreground' : 'border-border'
               )}>
-                {selected.length === 0 && <Check className="h-2.5 w-2.5" />}
+                {(isAll || allSelected) && <Check className="h-2.5 w-2.5" />}
               </div>
               All
             </button>
