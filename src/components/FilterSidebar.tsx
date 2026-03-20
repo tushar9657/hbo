@@ -130,7 +130,7 @@ export function FilterSidebar({
   if (!open) return null;
 
   return (
-    <aside className="w-[260px] shrink-0 border-r border-border bg-card p-4 overflow-y-auto fixed top-[48px] h-[calc(100vh-48px)] z-[100]">
+    <aside className="w-[312px] shrink-0 border-r border-border bg-card p-4 overflow-y-auto fixed top-[48px] h-[calc(100vh-48px)] z-[100]">
       <div className="flex items-center justify-between mb-5">
         <h2 className="font-sans text-sm font-semibold text-foreground">Filters</h2>
         {activeFilterCount > 0 && (
