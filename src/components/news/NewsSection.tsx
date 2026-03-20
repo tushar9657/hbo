@@ -131,7 +131,7 @@ export function NewsSection({ articles, readIds, onMarkRead }: NewsSectionProps)
   const dayName = selectedDate ? DAYS[selectedDate.getDay()] : '';
 
   return (
-    <div className="max-w-[1280px] mx-auto px-4 py-5">
+    <div className="max-w-[1408px] mx-auto px-4 py-5">
       {/* Date navigation + sort + date range toggle */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
