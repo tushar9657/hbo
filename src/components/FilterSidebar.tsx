@@ -243,7 +243,12 @@ export function FilterSidebar({
           </div>
           <button
             onClick={handleLatestDay}
-            className="w-full text-xs text-primary hover:text-primary/80 font-medium py-1.5 rounded-md border border-primary/20 hover:bg-primary/5 transition-colors"
+            className={cn(
+              'w-full text-xs font-medium py-1.5 rounded-md border transition-colors',
+              isLatestDayActive
+                ? 'bg-primary text-primary-foreground border-primary'
+                : 'text-primary hover:text-primary/80 border-primary/20 hover:bg-primary/5'
+            )}
           >
             Latest Day
           </button>

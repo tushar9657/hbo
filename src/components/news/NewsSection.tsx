@@ -226,13 +226,18 @@ export function NewsSection({ articles, readIds, onMarkRead }: NewsSectionProps)
         onClear={clearFilters}
       />
 
-      <div className="w-full min-h-[400px]">
+      <div className="w-full min-h-[600px]">
         {finalArticles.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center min-h-[400px]">
-            <p className="text-[14px] text-muted-foreground">No articles found for the selected filters.</p>
-            {activeFilterCount > 0 && (
-              <button onClick={clearFilters} className="mt-2 text-[13px] text-primary hover:underline">Clear filters</button>
-            )}
+          <div className="flex flex-col items-center justify-center min-h-[600px] text-center">
+            <div className="rounded-lg border border-border bg-card p-10 max-w-md">
+              <p className="text-[15px] font-medium text-foreground mb-2">No results found</p>
+              <p className="text-[13px] text-muted-foreground mb-4">
+                {search ? `No articles matching "${search}"` : 'No articles match your current filters.'}
+              </p>
+              {activeFilterCount > 0 && (
+                <button onClick={clearFilters} className="text-[13px] text-primary hover:underline">Clear filters</button>
+              )}
+            </div>
           </div>
         ) : (
           <>
