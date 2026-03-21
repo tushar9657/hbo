@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, CalendarIcon, X, ArrowUpDown, Download } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CalendarIcon, X, ArrowUpDown, Download, Bookmark } from 'lucide-react';
 import { useNewsFilters } from '@/hooks/useNewsFilters';
 import { HeroStrip } from '@/components/news/HeroStrip';
 import { FilterBar } from '@/components/news/FilterBar';
@@ -14,6 +14,7 @@ import { Slider } from '@/components/ui/slider';
 import { formatDateShort } from '@/utils/dateUtils';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { useNewsBookmarks } from '@/hooks/useBookmarks';
 import type { NewsArticle } from '@/types/news';
 
 interface NewsSectionProps {
