@@ -262,6 +262,8 @@ export function NewsSection({ articles, readIds, onMarkRead }: NewsSectionProps)
                   article={a}
                   onClick={() => handleArticleClick(a)}
                   isRead={readIds?.has(a._id)}
+                  isBookmarked={isNewsBookmarked(a._id)}
+                  onToggleBookmark={() => toggleNewsBookmark(a._id)}
                 />
               ))}
             </div>
