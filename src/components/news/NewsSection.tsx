@@ -56,6 +56,8 @@ export function NewsSection({ articles, readIds, onMarkRead }: NewsSectionProps)
     impactFilter, setImpactFilter, activeFilterCount, clearFilters,
   } = useNewsFilters(articles);
 
+  const { toggle: toggleNewsBookmark, isBookmarked: isNewsBookmarked, bookmarkedIds: newsBookmarkedIds } = useNewsBookmarks();
+  const [showBookmarkedOnly, setShowBookmarkedOnly] = useState(false);
   const [dateRangeMode, setDateRangeMode] = useState(false);
   const [dateFrom, setDateFrom] = useState<Date | null>(null);
   const [dateTo, setDateTo] = useState<Date | null>(null);
