@@ -27,7 +27,7 @@ function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-export function ArticleCard({ article, onClick, isRead }: ArticleCardProps) {
+export function ArticleCard({ article, onClick, isRead, isBookmarked, onToggleBookmark }: ArticleCardProps) {
   const impact = parseImpact(article.Impact_to_india);
   const bgClass = impact.hasImpact ? getImpactBgClass(impact.type) : getImpactBgClass(null);
   const shortCategory = CATEGORY_SHORT_NAMES[article.Event_Category] || article.Event_Category;
@@ -36,12 +36,26 @@ export function ArticleCard({ article, onClick, isRead }: ArticleCardProps) {
   return (
     <div
       className={cn(
-        'rounded-lg border cursor-pointer card-hover-border transition-all p-5 flex flex-col h-full',
+        'rounded-lg border cursor-pointer card-hover-border transition-all p-5 flex flex-col h-full relative group',
         bgClass,
         isRead && 'opacity-55'
       )}
       onClick={onClick}
     >
+      {/* Bookmark button */}
+      {onToggleBookmark && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggleBookmark(); }}
+          className={cn(
+            "absolute top-3 right-3 p-1 rounded transition-all z-10",
+            isBookmarked ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          )}
+          aria-label="Toggle bookmark"
+        >
+          <Bookmark className={cn("h-4 w-4", isBookmarked ? "text-primary fill-primary" : "text-muted-foreground")} />
+        </button>
+      )}
+
       {/* Top row: pills + date */}
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
@@ -53,7 +67,7 @@ export function ArticleCard({ article, onClick, isRead }: ArticleCardProps) {
           </span>
         </div>
         {dateLabel && (
-          <span className="text-[11px] font-mono text-muted-foreground whitespace-nowrap shrink-0">
+          <span className="text-[11px] font-mono text-muted-foreground whitespace-nowrap shrink-0 pr-5">
             {dateLabel}
           </span>
         )}
