@@ -96,15 +96,16 @@ export function NewsSection({ articles, readIds, onMarkRead }: NewsSectionProps)
     : [];
 
   const preSort = dateRangeMode ? dateRangeArticles : filtered;
+  const bookmarkFiltered = showBookmarkedOnly ? preSort.filter(a => isNewsBookmarked(a._id)) : preSort;
 
   const finalArticles = useMemo(() => {
-    if (!dateRangeMode) return preSort;
-    return [...preSort].sort((a, b) => {
+    if (!dateRangeMode) return bookmarkFiltered;
+    return [...bookmarkFiltered].sort((a, b) => {
       const da = a._parsedDate?.getTime() ?? 0;
       const db = b._parsedDate?.getTime() ?? 0;
       return sortAsc ? da - db : db - da;
     });
-  }, [preSort, dateRangeMode, sortAsc]);
+  }, [bookmarkFiltered, dateRangeMode, sortAsc]);
 
   const visibleArticles = useMemo(() => finalArticles.slice(0, visibleCount), [finalArticles, visibleCount]);
   const hasMore = visibleCount < finalArticles.length;
