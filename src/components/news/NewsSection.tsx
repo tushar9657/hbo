@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, CalendarIcon, X, ArrowUpDown, Download } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CalendarIcon, X, ArrowUpDown, Download, Bookmark } from 'lucide-react';
 import { useNewsFilters } from '@/hooks/useNewsFilters';
 import { HeroStrip } from '@/components/news/HeroStrip';
 import { FilterBar } from '@/components/news/FilterBar';
@@ -14,6 +14,7 @@ import { Slider } from '@/components/ui/slider';
 import { formatDateShort } from '@/utils/dateUtils';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { useNewsBookmarks } from '@/hooks/useBookmarks';
 import type { NewsArticle } from '@/types/news';
 
 interface NewsSectionProps {
@@ -55,6 +56,8 @@ export function NewsSection({ articles, readIds, onMarkRead }: NewsSectionProps)
     impactFilter, setImpactFilter, activeFilterCount, clearFilters,
   } = useNewsFilters(articles);
 
+  const { toggle: toggleNewsBookmark, isBookmarked: isNewsBookmarked, bookmarkedIds: newsBookmarkedIds } = useNewsBookmarks();
+  const [showBookmarkedOnly, setShowBookmarkedOnly] = useState(false);
   const [dateRangeMode, setDateRangeMode] = useState(false);
   const [dateFrom, setDateFrom] = useState<Date | null>(null);
   const [dateTo, setDateTo] = useState<Date | null>(null);
@@ -93,15 +96,16 @@ export function NewsSection({ articles, readIds, onMarkRead }: NewsSectionProps)
     : [];
 
   const preSort = dateRangeMode ? dateRangeArticles : filtered;
+  const bookmarkFiltered = showBookmarkedOnly ? preSort.filter(a => isNewsBookmarked(a._id)) : preSort;
 
   const finalArticles = useMemo(() => {
-    if (!dateRangeMode) return preSort;
-    return [...preSort].sort((a, b) => {
+    if (!dateRangeMode) return bookmarkFiltered;
+    return [...bookmarkFiltered].sort((a, b) => {
       const da = a._parsedDate?.getTime() ?? 0;
       const db = b._parsedDate?.getTime() ?? 0;
       return sortAsc ? da - db : db - da;
     });
-  }, [preSort, dateRangeMode, sortAsc]);
+  }, [bookmarkFiltered, dateRangeMode, sortAsc]);
 
   const visibleArticles = useMemo(() => finalArticles.slice(0, visibleCount), [finalArticles, visibleCount]);
   const hasMore = visibleCount < finalArticles.length;
@@ -164,6 +168,16 @@ export function NewsSection({ articles, readIds, onMarkRead }: NewsSectionProps)
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Bookmarks toggle */}
+          <Button
+            variant={showBookmarkedOnly ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setShowBookmarkedOnly(!showBookmarkedOnly)}
+            className="gap-1.5 text-[12px] h-8"
+          >
+            <Bookmark className={cn("h-3.5 w-3.5", showBookmarkedOnly && "fill-current")} />
+            Saved ({newsBookmarkedIds.size})
+          </Button>
           {/* CSV export */}
           <Button
             variant="ghost"
@@ -248,6 +262,8 @@ export function NewsSection({ articles, readIds, onMarkRead }: NewsSectionProps)
                   article={a}
                   onClick={() => handleArticleClick(a)}
                   isRead={readIds?.has(a._id)}
+                  isBookmarked={isNewsBookmarked(a._id)}
+                  onToggleBookmark={() => toggleNewsBookmark(a._id)}
                 />
               ))}
             </div>
