@@ -2,12 +2,15 @@ import { parseImpact } from '@/utils/impactUtils';
 import { cn } from '@/lib/utils';
 import { CATEGORY_SHORT_NAMES } from '@/constants/categories';
 import { format } from 'date-fns';
+import { Bookmark } from 'lucide-react';
 import type { NewsArticle } from '@/types/news';
 
 interface ArticleCardProps {
   article: NewsArticle;
   onClick: () => void;
   isRead?: boolean;
+  isBookmarked?: boolean;
+  onToggleBookmark?: () => void;
 }
 
 function getImpactBgClass(type: string | null): string {
