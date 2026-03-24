@@ -7,7 +7,7 @@ export interface DailySummary {
   _parsedDate: Date | null;
 }
 
-const SHEET_ID = '1b7SI9K9ZwvvmO84q84-zbRdIz4saIBW3-vJXk28MLk';
+const SHEET_ID = '1b7SI9K9ZwvvmO84q84-zbRdIz4saIBW3-vJXk28MLko';
 const DAILY_SUMMARY_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Daily_Summary`;
 
 function parseDate(raw: string): Date | null {
