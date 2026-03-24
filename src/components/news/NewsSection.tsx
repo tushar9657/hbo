@@ -298,6 +298,7 @@ export function NewsSection({ articles, readIds, onMarkRead, dailySummaries = []
       </div>
 
       <ArticleDetailModal article={selectedArticle} onClose={() => setSelectedArticle(null)} />
+      <DailyBriefModal summary={showDailyBrief ? currentBrief : null} dateLabel={briefDateLabel} onClose={() => setShowDailyBrief(false)} />
     </div>
   );
 }
