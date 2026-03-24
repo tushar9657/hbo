@@ -65,6 +65,7 @@ export function NewsSection({ articles, readIds, onMarkRead, dailySummaries = []
   const [dateFrom, setDateFrom] = useState<Date | null>(null);
   const [dateTo, setDateTo] = useState<Date | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<NewsArticle | null>(null);
+  const [showDailyBrief, setShowDailyBrief] = useState(false);
   const [sortAsc, setSortAsc] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
