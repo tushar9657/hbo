@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, CalendarIcon, X, ArrowUpDown, Download, Book
 import { useNewsFilters } from '@/hooks/useNewsFilters';
 import { HeroStrip } from '@/components/news/HeroStrip';
 import { FilterBar } from '@/components/news/FilterBar';
+import { DailyBriefModal } from '@/components/news/DailyBriefModal';
 import { parseImpact } from '@/utils/impactUtils';
 import { ArticleCard } from '@/components/news/ArticleCard';
 import { ArticleDetailModal } from '@/components/news/ArticleDetailModal';
@@ -16,11 +17,13 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useNewsBookmarks } from '@/hooks/useBookmarks';
 import type { NewsArticle } from '@/types/news';
+import type { DailySummary } from '@/hooks/useDailySummary';
 
 interface NewsSectionProps {
   articles: NewsArticle[];
   readIds?: Set<string>;
   onMarkRead?: (id: string) => void;
+  dailySummaries?: DailySummary[];
 }
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -47,7 +50,7 @@ function exportNewsToCSV(articles: NewsArticle[]) {
   URL.revokeObjectURL(url);
 }
 
-export function NewsSection({ articles, readIds, onMarkRead }: NewsSectionProps) {
+export function NewsSection({ articles, readIds, onMarkRead, dailySummaries = [] }: NewsSectionProps) {
   const {
     filtered, selectedDate, setSelectedDate, goToPrevDate, goToNextDate,
     isLatestDate, isEarliestDate, allDates,
@@ -62,6 +65,7 @@ export function NewsSection({ articles, readIds, onMarkRead }: NewsSectionProps)
   const [dateFrom, setDateFrom] = useState<Date | null>(null);
   const [dateTo, setDateTo] = useState<Date | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<NewsArticle | null>(null);
+  const [showDailyBrief, setShowDailyBrief] = useState(false);
   const [sortAsc, setSortAsc] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
@@ -133,6 +137,16 @@ export function NewsSection({ articles, readIds, onMarkRead }: NewsSectionProps)
   }, [onMarkRead]);
 
   const dayName = selectedDate ? DAYS[selectedDate.getDay()] : '';
+
+  // Match daily brief to current selected date
+  const currentBrief = useMemo(() => {
+    if (!selectedDate || dailySummaries.length === 0) return null;
+    const selDay = selectedDate.toDateString();
+    const match = dailySummaries.find(s => s._parsedDate?.toDateString() === selDay);
+    return match?.Summary || null;
+  }, [selectedDate, dailySummaries]);
+
+  const briefDateLabel = selectedDate ? `${formatDateShort(selectedDate)} • ${dayName}` : '';
 
   return (
     <div className="max-w-[1408px] mx-auto px-4 py-5">
@@ -223,7 +237,7 @@ export function NewsSection({ articles, readIds, onMarkRead }: NewsSectionProps)
         </div>
       )}
 
-      <HeroStrip articles={finalArticles} />
+      <HeroStrip articles={finalArticles} dailyBrief={currentBrief} onDailyBriefClick={() => setShowDailyBrief(true)} />
 
       <FilterBar
         search={search}
@@ -284,6 +298,7 @@ export function NewsSection({ articles, readIds, onMarkRead }: NewsSectionProps)
       </div>
 
       <ArticleDetailModal article={selectedArticle} onClose={() => setSelectedArticle(null)} />
+      <DailyBriefModal summary={showDailyBrief ? currentBrief : null} dateLabel={briefDateLabel} onClose={() => setShowDailyBrief(false)} />
     </div>
   );
 }

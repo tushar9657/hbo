@@ -5,6 +5,7 @@ import { FilingsSection } from '@/components/filings/FilingsSection';
 import { DeepDiveSection } from '@/components/deepdive/DeepDiveSection';
 import { GlobalSearchOverlay } from '@/components/GlobalSearchOverlay';
 import { useNewsData } from '@/hooks/useNewsData';
+import { useDailySummary } from '@/hooks/useDailySummary';
 import { useReadingHistory } from '@/hooks/useReadingHistory';
 import { Loader2 } from 'lucide-react';
 import type { NewsArticle } from '@/types/news';
@@ -15,6 +16,7 @@ type Section = 'news' | 'filings' | 'deepdive';
 const Index = () => {
   const [activeSection, setActiveSection] = useState<Section>('news');
   const { articles, loading: newsLoading, error: newsError, refetch: refetchNews } = useNewsData();
+  const { summaries: dailySummaries } = useDailySummary();
   const [filingsRefresh, setFilingsRefresh] = useState<(() => void) | null>(null);
   const [filingsLoading, setFilingsLoading] = useState(false);
   const [filingsData, setFilingsData] = useState<ParsedFiling[]>([]);
@@ -85,7 +87,7 @@ const Index = () => {
             </div>
           </div>
         ) : (
-          <NewsSection articles={articles} readIds={readIdsSet} onMarkRead={handleMarkRead} />
+          <NewsSection articles={articles} readIds={readIdsSet} onMarkRead={handleMarkRead} dailySummaries={dailySummaries} />
         )
       ) : activeSection === 'filings' ? (
         <FilingsSection
