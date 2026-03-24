@@ -237,7 +237,7 @@ export function NewsSection({ articles, readIds, onMarkRead, dailySummaries = []
         </div>
       )}
 
-      <HeroStrip articles={finalArticles} />
+      <HeroStrip articles={finalArticles} dailyBrief={currentBrief} onDailyBriefClick={() => setShowDailyBrief(true)} />
 
       <FilterBar
         search={search}
