@@ -138,6 +138,16 @@ export function NewsSection({ articles, readIds, onMarkRead, dailySummaries = []
 
   const dayName = selectedDate ? DAYS[selectedDate.getDay()] : '';
 
+  // Match daily brief to current selected date
+  const currentBrief = useMemo(() => {
+    if (!selectedDate || dailySummaries.length === 0) return null;
+    const selDay = selectedDate.toDateString();
+    const match = dailySummaries.find(s => s._parsedDate?.toDateString() === selDay);
+    return match?.Summary || null;
+  }, [selectedDate, dailySummaries]);
+
+  const briefDateLabel = selectedDate ? `${formatDateShort(selectedDate)} • ${dayName}` : '';
+
   return (
     <div className="max-w-[1408px] mx-auto px-4 py-5">
       {/* Date navigation + sort + date range toggle */}
