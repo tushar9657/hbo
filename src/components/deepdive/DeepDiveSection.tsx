@@ -22,8 +22,6 @@ interface DeepDiveSectionProps {
   onRefreshRef?: (fn: () => void) => void;
 }
 
-type SortField = 'name' | 'marketcap' | 'sector';
-type SortDir = 'asc' | 'desc';
 
 export function DeepDiveSection({ onLoadingChange, onRefreshRef }: DeepDiveSectionProps) {
   const { companies, loading, error, refetch } = useDeepDiveData();
@@ -39,8 +37,6 @@ export function DeepDiveSection({ onLoadingChange, onRefreshRef }: DeepDiveSecti
   // Filters
   const [filterSector, setFilterSector] = useState<string[]>([]);
   const [filterSize, setFilterSize] = useState<string[]>([]);
-  const [sortField, setSortField] = useState<SortField>('name');
-  const [sortDir, setSortDir] = useState<SortDir>('asc');
 
   useEffect(() => { onLoadingChange?.(loading); }, [loading, onLoadingChange]);
   useEffect(() => { onRefreshRef?.(refetch); }, [refetch, onRefreshRef]);
@@ -78,14 +74,8 @@ export function DeepDiveSection({ onLoadingChange, onRefreshRef }: DeepDiveSecti
     if (filterSector.length > 0) list = list.filter(c => filterSector.includes(c.Sector));
     if (filterSize.length > 0) list = list.filter(c => filterSize.includes(c.Size));
 
-     return [...list].sort((a, b) => {
-      let cmp = 0;
-      if (sortField === 'name') cmp = a.Company_Name.localeCompare(b.Company_Name);
-      else if (sortField === 'marketcap') cmp = (Number(a.Marketcap_Cr) || 0) - (Number(b.Marketcap_Cr) || 0);
-      else if (sortField === 'sector') cmp = a.Sector.localeCompare(b.Sector);
-      return sortDir === 'desc' ? -cmp : cmp;
-    });
-  }, [companies, thematicSearch, showBookmarksOnly, isBookmarked, filterSector, filterSize, sortField, sortDir]);
+     return list.sort((a, b) => a.Company_Name.localeCompare(b.Company_Name));
+  }, [companies, thematicSearch, showBookmarksOnly, isBookmarked, filterSector, filterSize]);
 
   const handleSelectCompany = useCallback((c: DeepDiveCompany) => {
     setSelectedCompany(c);
@@ -176,27 +166,6 @@ export function DeepDiveSection({ onLoadingChange, onRefreshRef }: DeepDiveSecti
             <SlidersHorizontal className="h-3.5 w-3.5" />
             Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
           </Button>
-
-          {/* Sort */}
-          <div className="flex items-center gap-1 ml-auto">
-            <span className="text-[11px] text-muted-foreground">Sort:</span>
-            {(['name', 'marketcap', 'sector'] as SortField[]).map(f => (
-              <button
-                key={f}
-                onClick={() => {
-                  if (sortField === f) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
-                  else { setSortField(f); setSortDir(f === 'marketcap' ? 'desc' : 'asc'); }
-                }}
-                className={cn(
-                  "text-[11px] px-2 py-1 rounded-md transition-colors",
-                  sortField === f ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {f === 'marketcap' ? 'Mcap' : f.charAt(0).toUpperCase() + f.slice(1)}
-                {sortField === f && (sortDir === 'asc' ? ' ↑' : ' ↓')}
-              </button>
-            ))}
-          </div>
         </div>
       )}
 
@@ -398,11 +367,6 @@ function CompanyDashboard({ company, isBookmarked, onToggleBookmark }: {
           </p>
         )}
         {company.About && <p className="text-[13px] leading-relaxed text-muted-foreground">{company.About}</p>}
-        {company.URL_TJ && (
-          <a href={company.URL_TJ} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[12px] text-primary hover:underline mt-2">
-            View on Tijori Finance <ExternalLink className="h-3 w-3" />
-          </a>
-        )}
       </div>
 
       {/* Revenue & Business Mix — moved to top */}
