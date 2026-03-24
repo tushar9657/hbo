@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, CalendarIcon, X, ArrowUpDown, Download, Book
 import { useNewsFilters } from '@/hooks/useNewsFilters';
 import { HeroStrip } from '@/components/news/HeroStrip';
 import { FilterBar } from '@/components/news/FilterBar';
+import { DailyBriefModal } from '@/components/news/DailyBriefModal';
 import { parseImpact } from '@/utils/impactUtils';
 import { ArticleCard } from '@/components/news/ArticleCard';
 import { ArticleDetailModal } from '@/components/news/ArticleDetailModal';
@@ -16,11 +17,13 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useNewsBookmarks } from '@/hooks/useBookmarks';
 import type { NewsArticle } from '@/types/news';
+import type { DailySummary } from '@/hooks/useDailySummary';
 
 interface NewsSectionProps {
   articles: NewsArticle[];
   readIds?: Set<string>;
   onMarkRead?: (id: string) => void;
+  dailySummaries?: DailySummary[];
 }
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
