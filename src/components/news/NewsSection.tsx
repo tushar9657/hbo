@@ -50,7 +50,7 @@ function exportNewsToCSV(articles: NewsArticle[]) {
   URL.revokeObjectURL(url);
 }
 
-export function NewsSection({ articles, readIds, onMarkRead }: NewsSectionProps) {
+export function NewsSection({ articles, readIds, onMarkRead, dailySummaries = [] }: NewsSectionProps) {
   const {
     filtered, selectedDate, setSelectedDate, goToPrevDate, goToNextDate,
     isLatestDate, isEarliestDate, allDates,
