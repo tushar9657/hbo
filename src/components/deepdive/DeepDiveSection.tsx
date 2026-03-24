@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { Search, ArrowRight, ExternalLink, Loader2, X, Building2, Users, Truck, Bookmark, Star, SlidersHorizontal, ArrowUpDown, Youtube, Globe, MessageSquare, FileText } from 'lucide-react';
+import { Search, ArrowRight, Loader2, X, Building2, Users, Truck, Star, SlidersHorizontal, Youtube, Globe, MessageSquare, FileText } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
