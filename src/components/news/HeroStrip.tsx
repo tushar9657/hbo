@@ -1,12 +1,16 @@
 import { useMemo } from 'react';
+import { Newspaper } from 'lucide-react';
 import type { NewsArticle } from '@/types/news';
 import { parseImpact } from '@/utils/impactUtils';
+import { cn } from '@/lib/utils';
 
 interface HeroStripProps {
   articles: NewsArticle[];
+  dailyBrief?: string | null;
+  onDailyBriefClick?: () => void;
 }
 
-export function HeroStrip({ articles }: HeroStripProps) {
+export function HeroStrip({ articles, dailyBrief, onDailyBriefClick }: HeroStripProps) {
   const stats = useMemo(() => {
     let supplyDemand = 0, regulatory = 0, macro = 0;
     articles.forEach(a => {
@@ -20,6 +24,21 @@ export function HeroStrip({ articles }: HeroStripProps) {
 
   return (
     <div className="flex items-stretch border border-border rounded-lg overflow-hidden mb-5 bg-card">
+      {dailyBrief && (
+        <button
+          onClick={onDailyBriefClick}
+          className={cn(
+            "flex-1 px-5 py-3 border-r border-border text-left transition-colors",
+            "hover:bg-primary/5 group cursor-pointer"
+          )}
+        >
+          <div className="flex items-center gap-1.5">
+            <Newspaper className="h-4 w-4 text-primary" />
+            <span className="text-[14px] font-semibold text-primary">Daily Brief</span>
+          </div>
+          <div className="text-[11px] text-muted-foreground group-hover:text-foreground transition-colors mt-0.5">Click to read</div>
+        </button>
+      )}
       <StatBox value={stats.total} label="Total Articles" />
       <StatBox value={stats.supplyDemand} label="Supply / Demand" colorClass="text-impact-supply" />
       <StatBox value={stats.regulatory} label="Regulatory" colorClass="text-impact-regulatory" />
