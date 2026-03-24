@@ -78,13 +78,13 @@ export function DeepDiveSection({ onLoadingChange, onRefreshRef }: DeepDiveSecti
     if (filterSector.length > 0) list = list.filter(c => filterSector.includes(c.Sector));
     if (filterSize.length > 0) list = list.filter(c => filterSize.includes(c.Size));
 
-    return [...list].sort((a, b) => {
+     return [...list].sort((a, b) => {
       let cmp = 0;
       if (sortField === 'name') cmp = a.Company_Name.localeCompare(b.Company_Name);
       else if (sortField === 'marketcap') cmp = (Number(a.Marketcap_Cr) || 0) - (Number(b.Marketcap_Cr) || 0);
       else if (sortField === 'sector') cmp = a.Sector.localeCompare(b.Sector);
       return sortDir === 'desc' ? -cmp : cmp;
-    }).slice(0, 30);
+    });
   }, [companies, thematicSearch, showBookmarksOnly, isBookmarked, filterSector, filterSize, sortField, sortDir]);
 
   const handleSelectCompany = useCallback((c: DeepDiveCompany) => {
@@ -118,7 +118,7 @@ export function DeepDiveSection({ onLoadingChange, onRefreshRef }: DeepDiveSecti
   }
 
   return (
-    <div className="max-w-[1280px] mx-auto px-4 py-5">
+    <div className="max-w-[1600px] mx-auto px-4 py-5">
       {/* Search bars */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
         <div className="relative" ref={companyRef}>
@@ -455,9 +455,9 @@ function CompanyDashboard({ company, isBookmarked, onToggleBookmark }: {
                 <Truck className="h-3.5 w-3.5 text-muted-foreground" />
                 <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Suppliers</span>
               </div>
-              <ScrollArea className="max-h-[120px]">
+              <ScrollArea className="h-[140px]">
                 {suppliers.length > 0 ? (
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="flex flex-wrap gap-1.5 pr-2">
                     {suppliers.map(s => (
                       <span key={s} className="inline-flex items-center rounded-full border border-border bg-card px-2.5 py-1 text-[12px] text-foreground">{s}</span>
                     ))}
@@ -479,9 +479,9 @@ function CompanyDashboard({ company, isBookmarked, onToggleBookmark }: {
                 <Users className="h-3.5 w-3.5 text-muted-foreground" />
                 <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Customers</span>
               </div>
-              <ScrollArea className="max-h-[120px]">
+              <ScrollArea className="h-[140px]">
                 {customers.length > 0 ? (
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="flex flex-wrap gap-1.5 pr-2">
                     {customers.map(c => (
                       <span key={c} className="inline-flex items-center rounded-full border border-border bg-card px-2.5 py-1 text-[12px] text-foreground">{c}</span>
                     ))}
