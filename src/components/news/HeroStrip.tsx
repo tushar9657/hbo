@@ -29,14 +29,14 @@ export function HeroStrip({ articles, dailyBrief, onDailyBriefClick }: HeroStrip
           onClick={onDailyBriefClick}
           className={cn(
             "flex-1 px-5 py-3 border-r border-border text-left transition-colors",
-            "hover:bg-primary/5 group cursor-pointer"
+            "bg-red-50 hover:bg-red-100 group cursor-pointer"
           )}
         >
           <div className="flex items-center gap-1.5">
-            <Newspaper className="h-4 w-4 text-primary" />
-            <span className="text-[14px] font-semibold text-primary">Daily Brief</span>
+            <Newspaper className="h-5 w-5 text-red-600" />
+            <span className="text-[18px] font-bold text-red-700">Daily Brief</span>
           </div>
-          <div className="text-[11px] text-muted-foreground group-hover:text-foreground transition-colors mt-0.5">Click to read</div>
+          <div className="text-[11px] text-red-500 group-hover:text-red-700 transition-colors mt-0.5">Click to read</div>
         </button>
       )}
       <StatBox value={stats.total} label="Total Articles" />

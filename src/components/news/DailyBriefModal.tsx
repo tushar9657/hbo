@@ -11,7 +11,9 @@ interface DailyBriefModalProps {
 
 function parseBriefBullets(raw: string): { tag: string; body: string }[] {
   // Split by bullet markers: *, •, or numbered
-  const lines = raw.split(/(?:^|\n)\s*[\*•\-]\s+/).filter(Boolean);
+  // Remove "Here is your..." intro line
+  const cleaned = raw.replace(/^.*?here is your[^\n]*\.?\n*/i, '');
+  const lines = cleaned.split(/(?:^|\n)\s*[\*•\-]\s+/).filter(Boolean);
   return lines.map(line => {
     // Extract bold tag like **[Macro & Geopolitics]** or [Tag]
     const tagMatch = line.match(/^\*{0,2}\[([^\]]+)\]\*{0,2}\s*/);

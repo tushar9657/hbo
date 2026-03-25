@@ -42,19 +42,6 @@ export function ArticleCard({ article, onClick, isRead, isBookmarked, onToggleBo
       )}
       onClick={onClick}
     >
-      {/* Bookmark button */}
-      {onToggleBookmark && (
-        <button
-          onClick={(e) => { e.stopPropagation(); onToggleBookmark(); }}
-          className={cn(
-            "absolute top-3 right-3 p-1 rounded transition-all z-10",
-            isBookmarked ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-          )}
-          aria-label="Toggle bookmark"
-        >
-          <Bookmark className={cn("h-4 w-4", isBookmarked ? "text-primary fill-primary" : "text-muted-foreground")} />
-        </button>
-      )}
 
       {/* Top row: pills + date */}
       <div className="flex items-start justify-between gap-2 mb-2">

@@ -29,6 +29,7 @@ export function DeepDiveSection({ onLoadingChange, onRefreshRef }: DeepDiveSecti
   const [companySearch, setCompanySearch] = useState('');
   const [thematicSearch, setThematicSearch] = useState('');
   const [selectedCompany, setSelectedCompany] = useState<DeepDiveCompany | null>(null);
+  const [initialLoaded, setInitialLoaded] = useState(false);
   const [showCompanySuggestions, setShowCompanySuggestions] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
@@ -40,6 +41,15 @@ export function DeepDiveSection({ onLoadingChange, onRefreshRef }: DeepDiveSecti
 
   useEffect(() => { onLoadingChange?.(loading); }, [loading, onLoadingChange]);
   useEffect(() => { onRefreshRef?.(refetch); }, [refetch, onRefreshRef]);
+
+  // Default to Reliance on first load
+  useEffect(() => {
+    if (!initialLoaded && companies.length > 0) {
+      setInitialLoaded(true);
+      const reliance = companies.find(c => c.NSE_Symbol.toUpperCase() === 'RELIANCE' || c.Company_Name.toLowerCase().includes('reliance'));
+      if (reliance) setSelectedCompany(reliance);
+    }
+  }, [companies, initialLoaded]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
