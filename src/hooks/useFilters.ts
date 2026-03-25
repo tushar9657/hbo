@@ -4,7 +4,7 @@ import { isSameDay } from '@/utils/dateUtils';
 
 function getDefaultDateFrom(): Date {
   const d = new Date();
-  d.setDate(d.getDate() - 7);
+  d.setMonth(d.getMonth() - 1);
   d.setHours(0, 0, 0, 0);
   return d;
 }
