@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, CalendarIcon, X, ArrowUpDown, Download, Bookmark } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CalendarIcon, X, ArrowUpDown, Download } from 'lucide-react';
 import { useNewsFilters } from '@/hooks/useNewsFilters';
 import { HeroStrip } from '@/components/news/HeroStrip';
 import { FilterBar } from '@/components/news/FilterBar';

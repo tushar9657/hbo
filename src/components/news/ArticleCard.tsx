@@ -54,7 +54,7 @@ export function ArticleCard({ article, onClick, isRead, isBookmarked, onToggleBo
           </span>
         </div>
         {dateLabel && (
-          <span className="text-[11px] font-mono text-muted-foreground whitespace-nowrap shrink-0 pr-5">
+          <span className="text-[11px] font-mono text-muted-foreground whitespace-nowrap shrink-0">
             {dateLabel}
           </span>
         )}
