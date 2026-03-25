@@ -10,7 +10,7 @@ function getDefaultDateFrom(): Date {
 }
 
 const DEFAULT_FILTERS: FilterState = {
-  sentiments: [],
+  sentiments: ['Positive', 'Negative'],
   topics: [],
   subtopics: [],
   search: '',

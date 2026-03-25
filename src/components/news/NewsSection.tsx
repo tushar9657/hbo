@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, CalendarIcon, X, ArrowUpDown, Download, Bookmark } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CalendarIcon, X, ArrowUpDown, Download } from 'lucide-react';
 import { useNewsFilters } from '@/hooks/useNewsFilters';
 import { HeroStrip } from '@/components/news/HeroStrip';
 import { FilterBar } from '@/components/news/FilterBar';
@@ -182,16 +182,6 @@ export function NewsSection({ articles, readIds, onMarkRead, dailySummaries = []
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Bookmarks toggle */}
-          <Button
-            variant={showBookmarkedOnly ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setShowBookmarkedOnly(!showBookmarkedOnly)}
-            className="gap-1.5 text-[12px] h-8"
-          >
-            <Bookmark className={cn("h-3.5 w-3.5", showBookmarkedOnly && "fill-current")} />
-            Saved ({newsBookmarkedIds.size})
-          </Button>
           {/* CSV export */}
           <Button
             variant="ghost"
