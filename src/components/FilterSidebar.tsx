@@ -404,7 +404,7 @@ function DatePickerField({ label, value, onChange }: { label: string; value: Dat
           mode="single"
           selected={value ?? undefined}
           onSelect={(d) => onChange(d ?? null)}
-          className="p-3 pointer-events-auto"
+          className="p-2 pointer-events-auto text-[10px] scale-[0.7] origin-top-left"
         />
       </PopoverContent>
     </Popover>

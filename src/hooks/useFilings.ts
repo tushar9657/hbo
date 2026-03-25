@@ -1,24 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import Papa from 'papaparse';
 import type { Filing, ParsedFiling } from '@/types/filing';
 import { parseDate } from '@/utils/dateUtils';
 import { normalizeSentiment } from '@/utils/sentimentUtils';
-
-const SHEET_URLS = [
-  // 2026
-  atob(['aHR0cHM6Ly9kb2NzLmdvb2dsZS5jb20v','c3ByZWFkc2hlZXRzL2QvMUJKS051anFS','OHVxQ1Jkc3ZHTm1CTklHS2FSTk1y','NFFtbjZocmtTdXdobFkvZXhwb3J0','P2Zvcm1hdD1jc3Y='].join('')),
-  // 2025
-  'https://docs.google.com/spreadsheets/d/1BJKNujqR8uqCRdsvGNmBNIGKaRNMr4Qmn6hrkSuwhY/export?format=csv&gid=0',
-  // 2024
-  'https://docs.google.com/spreadsheets/d/11gJMh6GM0PyPojlJ2U8EH3n23F09yuc-IdCGiTNcd_k/export?format=csv',
-  // 2023
-  'https://docs.google.com/spreadsheets/d/11gJMh6GM0PyPojlJ2U8EH3n23F09yuc-IdCGiTNcd_k/export?format=csv',
-];
-
-// We need the actual separate sheet IDs. Let me use the one provided for 2023 and derive others.
-// User said 2023 sheet: https://docs.google.com/spreadsheets/d/11gJMh6GM0PyPojlJ2U8EH3n23F09yuc-IdCGiTNcd_k/
-// The 2026 sheet is already known. For 2024/2025 we need separate sheet IDs.
-// For now, use the 2026 main sheet and the 2023 sheet. User can provide 2024/2025 later.
 
 function getSheetExportUrl(sheetId: string, gid?: string): string {
   let url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
@@ -26,9 +10,15 @@ function getSheetExportUrl(sheetId: string, gid?: string): string {
   return url;
 }
 
-const SHEETS = [
-  // 2026 (original)
-  atob(['aHR0cHM6Ly9kb2NzLmdvb2dsZS5jb20v','c3ByZWFkc2hlZXRzL2QvMUJKS051anFS','OHVxQ1Jkc3ZHTm1CTklHS2FSTk1y','NFFtbjZocmtTdXdobFkvZXhwb3J0','P2Zvcm1hdD1jc3Y='].join('')),
+// 2026 (current year - load first)
+const CURRENT_YEAR_URL = atob(['aHR0cHM6Ly9kb2NzLmdvb2dsZS5jb20v','c3ByZWFkc2hlZXRzL2QvMUJKS051anFS','OHVxQ1Jkc3ZHTm1CTklHS2FSTk1y','NFFtbjZocmtTdXdobFkvZXhwb3J0','P2Zvcm1hdD1jc3Y='].join(''));
+
+// Historical sheets (loaded in background)
+const HISTORICAL_URLS = [
+  // 2025
+  getSheetExportUrl('1oqyfvDGMs9PbhHd2W7EbDOtBAFOLm8fsUeAQUWuy69E'),
+  // 2024
+  getSheetExportUrl('1-NC0IK2VnZx-TrZqMbKmbw-0DEnUZNEBT2puWpD7Grw'),
   // 2023
   getSheetExportUrl('11gJMh6GM0PyPojlJ2U8EH3n23F09yuc-IdCGiTNcd_k'),
 ];
@@ -56,32 +46,54 @@ function parseSheet(url: string): Promise<ParsedFiling[]> {
   });
 }
 
+function dedupeAndSort(filings: ParsedFiling[]): ParsedFiling[] {
+  const seen = new Set<string>();
+  const deduped: ParsedFiling[] = [];
+  for (const f of filings) {
+    if (!seen.has(f.id)) {
+      seen.add(f.id);
+      deduped.push(f);
+    }
+  }
+  deduped.sort((a, b) => (b.PubDate?.getTime() ?? 0) - (a.PubDate?.getTime() ?? 0));
+  return deduped;
+}
+
+function filterLastMonth(filings: ParsedFiling[]): ParsedFiling[] {
+  const now = new Date();
+  const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+  return filings.filter(f => f.PubDate && f.PubDate >= oneMonthAgo);
+}
+
 export function useFilings() {
   const [filings, setFilings] = useState<ParsedFiling[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
+  const historicalLoaded = useRef(false);
 
   const fetchFilings = useCallback(() => {
     setLoading(true);
     setError(null);
+    historicalLoaded.current = false;
 
-    Promise.all(SHEETS.map(url => parseSheet(url)))
-      .then((results) => {
-        // Combine all sheets, deduplicate by id, sort by date desc
-        const all = results.flat();
-        const seen = new Set<string>();
-        const deduped: ParsedFiling[] = [];
-        for (const f of all) {
-          if (!seen.has(f.id)) {
-            seen.add(f.id);
-            deduped.push(f);
-          }
-        }
-        deduped.sort((a, b) => (b.PubDate?.getTime() ?? 0) - (a.PubDate?.getTime() ?? 0));
-        setFilings(deduped);
+    // Load current year first (last 1 month only for fast initial render)
+    parseSheet(CURRENT_YEAR_URL)
+      .then((currentYear) => {
+        const lastMonth = filterLastMonth(currentYear);
+        setFilings(dedupeAndSort(lastMonth.length > 0 ? lastMonth : currentYear.slice(0, 50)));
         setLastFetched(new Date());
         setLoading(false);
+
+        // Then load full current year
+        setFilings(dedupeAndSort(currentYear));
+
+        // Background load historical sheets
+        Promise.all(HISTORICAL_URLS.map(url => parseSheet(url).catch(() => [] as ParsedFiling[])))
+          .then((historicalResults) => {
+            historicalLoaded.current = true;
+            setFilings(prev => dedupeAndSort([...prev, ...historicalResults.flat()]));
+          });
       })
       .catch((err) => {
         setError(err.message || 'Failed to fetch filings data');

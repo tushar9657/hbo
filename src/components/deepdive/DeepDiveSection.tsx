@@ -46,7 +46,7 @@ export function DeepDiveSection({ onLoadingChange, onRefreshRef }: DeepDiveSecti
   useEffect(() => {
     if (!initialLoaded && companies.length > 0) {
       setInitialLoaded(true);
-      const reliance = companies.find(c => c.NSE_Symbol.toUpperCase() === 'RELIANCE' || c.Company_Name.toLowerCase().includes('reliance'));
+      const reliance = companies.find(c => c.NSE_Symbol.toUpperCase() === 'RELIANCE') || companies.find(c => c.Company_Name.toUpperCase().includes('RELIANCE INDUSTRIES'));
       if (reliance) setSelectedCompany(reliance);
     }
   }, [companies, initialLoaded]);
