@@ -1,11 +1,22 @@
 export function parseDate(str: string): Date | null {
+  if (!str) return null;
   const months: Record<string, number> = {
     Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
     Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11,
   };
-  const m = str.match(/(\d{2})-([A-Za-z]{3})-(\d{4})\s+(\d{2}):(\d{2}):(\d{2})/);
-  if (!m) return null;
-  return new Date(+m[3], months[m[2]], +m[1], +m[4], +m[5], +m[6]);
+  // DD-Mon-YYYY HH:MM:SS
+  const m = str.match(/(\d{1,2})-([A-Za-z]{3})-(\d{4})\s+(\d{2}):(\d{2}):(\d{2})/);
+  if (m) return new Date(+m[3], months[m[2]], +m[1], +m[4], +m[5], +m[6]);
+  // Mon/DD/YYYY HH:MM:SS (Google Sheets format)
+  const m2 = str.match(/([A-Za-z]{3})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})/);
+  if (m2) return new Date(+m2[3], months[m2[1]], +m2[2], +m2[4], +m2[5], +m2[6]);
+  // MM/DD/YYYY HH:MM:SS
+  const m3 = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})/);
+  if (m3) return new Date(+m3[3], +m3[1] - 1, +m3[2], +m3[4], +m3[5], +m3[6]);
+  // Fallback: try native Date parse
+  const d = new Date(str);
+  if (!isNaN(d.getTime())) return d;
+  return null;
 }
 
 export function parseExtractionDate(str: string): Date | null {
