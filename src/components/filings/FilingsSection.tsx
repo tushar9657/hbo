@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useFilings } from '@/hooks/useFilings';
+import type { FilingsLoadProgress } from '@/hooks/useFilings';
 import { useFilters } from '@/hooks/useFilters';
 import { FilterSidebar } from '@/components/FilterSidebar';
 import { FeedTab } from '@/components/tabs/FeedTab';
@@ -49,7 +50,7 @@ interface FilingsSectionProps {
 }
 
 export function FilingsSection({ onLoadingChange, onRefreshRef, onFilingsData, readIds, onMarkRead }: FilingsSectionProps) {
-  const { filings, loading, error, lastFetched, fetchFilings } = useFilings();
+  const { filings, loading, error, lastFetched, fetchFilings, progress } = useFilings();
   const {
     filters, filtered, topics, subtopics, sentimentCounts, activeFilterCount, dateRange,
     toggleSentiment, clearSentiments, setTopics, setSubtopics, setSearch, setDateFrom, setDateTo, setTimeframe, setSelectedDate, clearAll,
@@ -155,6 +156,26 @@ export function FilingsSection({ onLoadingChange, onRefreshRef, onFilingsData, r
       {sidebarOpen && <div className="w-[312px] shrink-0" />}
 
       <main className="flex-1 min-w-0 p-4">
+        {/* Live loading progress bar */}
+        {progress.loadedSheets > 0 && progress.loadedSheets < progress.totalSheets && (
+          <div className="mb-3">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[10px] text-muted-foreground">
+                Loading data: {progress.labels[progress.labels.length - 1] || '...'}
+              </span>
+              <span className="text-[10px] text-muted-foreground">
+                {progress.loadedSheets}/{progress.totalSheets}
+              </span>
+            </div>
+            <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
+                style={{ width: `${(progress.loadedSheets / progress.totalSheets) * 100}%` }}
+              />
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center justify-between mb-4">
           <div className="flex gap-1 border-b border-border">
             {TABS.map(tab => (
