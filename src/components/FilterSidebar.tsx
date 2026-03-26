@@ -399,13 +399,15 @@ function DatePickerField({ label, value, onChange }: { label: string; value: Dat
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 z-[300]" align="start" side="right">
-        <Calendar
-          mode="single"
-          selected={value ?? undefined}
-          onSelect={(d) => onChange(d ?? null)}
-          className="p-2 pointer-events-auto text-[10px] scale-[0.7] origin-top-left"
-        />
+      <PopoverContent className="w-auto p-0 z-[300]" align="start" side="right" style={{ width: 'auto', minWidth: 0 }}>
+        <div className="transform scale-[0.7] origin-top-left" style={{ width: 220, height: 220 }}>
+          <Calendar
+            mode="single"
+            selected={value ?? undefined}
+            onSelect={(d) => onChange(d ?? null)}
+            className="p-1 pointer-events-auto"
+          />
+        </div>
       </PopoverContent>
     </Popover>
   );
