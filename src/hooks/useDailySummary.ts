@@ -29,7 +29,7 @@ export function useDailySummary() {
           .map(row => ({
             Date: row.Date || '',
             Summary: row.Summary || '',
-            _parsedDate: parseDate(row.Date || ''),
+            _parsedDate: parseExtractionDate(row.Date || ''),
           }));
         setSummaries(parsed);
         setLoading(false);
