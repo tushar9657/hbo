@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useFilings } from '@/hooks/useFilings';
+import type { FilingsLoadProgress } from '@/hooks/useFilings';
 import { useFilters } from '@/hooks/useFilters';
 import { FilterSidebar } from '@/components/FilterSidebar';
 import { FeedTab } from '@/components/tabs/FeedTab';
@@ -49,7 +50,7 @@ interface FilingsSectionProps {
 }
 
 export function FilingsSection({ onLoadingChange, onRefreshRef, onFilingsData, readIds, onMarkRead }: FilingsSectionProps) {
-  const { filings, loading, error, lastFetched, fetchFilings } = useFilings();
+  const { filings, loading, error, lastFetched, fetchFilings, progress } = useFilings();
   const {
     filters, filtered, topics, subtopics, sentimentCounts, activeFilterCount, dateRange,
     toggleSentiment, clearSentiments, setTopics, setSubtopics, setSearch, setDateFrom, setDateTo, setTimeframe, setSelectedDate, clearAll,
