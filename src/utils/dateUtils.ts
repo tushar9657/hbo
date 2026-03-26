@@ -1,5 +1,10 @@
+function stripLeadingApostrophe(str: string): string {
+  return str.startsWith("'") ? str.slice(1) : str;
+}
+
 export function parseDate(str: string): Date | null {
   if (!str) return null;
+  str = stripLeadingApostrophe(str.trim());
   const months: Record<string, number> = {
     Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
     Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11,
@@ -13,6 +18,15 @@ export function parseDate(str: string): Date | null {
   // MM/DD/YYYY HH:MM:SS
   const m3 = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})/);
   if (m3) return new Date(+m3[3], +m3[1] - 1, +m3[2], +m3[4], +m3[5], +m3[6]);
+  // DD-Mon-YYYY (no time)
+  const m4 = str.match(/^(\d{1,2})-([A-Za-z]{3})-(\d{4})$/);
+  if (m4) return new Date(+m4[3], months[m4[2]], +m4[1]);
+  // MM/DD/YYYY (no time)
+  const m5 = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (m5) return new Date(+m5[3], +m5[1] - 1, +m5[2]);
+  // YYYY-MM-DD
+  const m6 = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (m6) return new Date(+m6[1], +m6[2] - 1, +m6[3]);
   // Fallback: try native Date parse
   const d = new Date(str);
   if (!isNaN(d.getTime())) return d;
@@ -21,16 +35,20 @@ export function parseDate(str: string): Date | null {
 
 export function parseExtractionDate(str: string): Date | null {
   if (!str) return null;
+  str = stripLeadingApostrophe(str.trim());
   const months: Record<string, number> = {
     Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
     Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11,
   };
-  // Handle DD-Mon-YYYY
+  // DD-Mon-YYYY
   const dmy = str.match(/(\d{1,2})-([A-Za-z]{3})-(\d{4})/);
   if (dmy) return new Date(+dmy[3], months[dmy[2]], +dmy[1]);
-  // Handle YYYY-MM-DD
+  // YYYY-MM-DD
   const iso = str.match(/(\d{4})-(\d{2})-(\d{2})/);
   if (iso) return new Date(+iso[1], +iso[2] - 1, +iso[3]);
+  // MM/DD/YYYY
+  const mdy = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (mdy) return new Date(+mdy[3], +mdy[1] - 1, +mdy[2]);
   return null;
 }
 
