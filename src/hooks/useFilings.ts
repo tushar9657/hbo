@@ -20,7 +20,7 @@ function getGvizQueryUrl(sheetId: string, sheetName: string, query: string): str
 
 // Sheet IDs
 const SHEET_IDS: Record<number, string> = {
-  2026: '1BJKNujqR8uqCRdsvGNmBNIGKaRNMr4Qmn6hrkSuwhbY',
+  2026: '1BJKNujqR8uqCRdsvGNmBNIGKaRNMr4Qmn6hrkSuwhlY',
   2025: '1oqyfvDGMs9PbhHd2W7EbDOtBAFOLm8fsUeAQUWuy69E',
   2024: '1-NC0IK2VnZx-TrZqMbKmbw-0DEnUZNEBT2puWpD7Grw',
   2023: '11gJMh6GM0PyPojlJ2U8EH3n23F09yuc-IdCGiTNcd_k',
