@@ -129,16 +129,15 @@ export function useFilings() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastFetched, setLastFetched] = useState<Date | null>(null);
-  const [progress, setProgress] = useState<FilingsLoadProgress>({ totalSheets: 5, loadedSheets: 0, labels: [] });
+  const [progress, setProgress] = useState<FilingsLoadProgress>({ totalSheets: 0, loadedSheets: 0, labels: [] });
   const abortRef = useRef(false);
 
   const fetchFilings = useCallback(() => {
     setLoading(true);
     setError(null);
     abortRef.current = false;
-    setProgress({ totalSheets: 5, loadedSheets: 0, labels: [] });
 
-    // Step 0: Show cached data instantly
+    // Show cached data instantly
     const cached = loadCache();
     if (cached && cached.length > 0) {
       setFilings(cached);
@@ -149,65 +148,62 @@ export function useFilings() {
     const sheetId = SHEET_IDS[currentYear] || SHEET_IDS[2026];
     const sheetName = getSheetName(currentYear);
 
-    // Step 1: Fetch last 30 days via Google Visualization API query filter
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    // Build dynamic list of historical years (newest to oldest, excluding current)
+    const historicalYears = Object.keys(SHEET_IDS)
+      .map(Number)
+      .filter(y => y !== currentYear)
+      .sort((a, b) => b - a); // newest first
+
+    const totalSteps = 2 + historicalYears.length; // step1: last 7 days, step2: full current year, rest: historical
+    setProgress({ totalSheets: totalSteps, loadedSheets: 0, labels: [] });
+
+    // Step 1: Fetch last 7 days via gviz query for instant display
     const queryUrl = getGvizQueryUrl(sheetId, sheetName, 'select *');
 
-    // Try query API first for speed, fallback to full CSV
     fetch(queryUrl)
-      .then(r => {
-        if (!r.ok) throw new Error('Query API failed');
-        return r.text();
-      })
+      .then(r => { if (!r.ok) throw new Error('Query API failed'); return r.text(); })
       .then(csvText => parseCSVText(csvText))
-      .catch(() => {
-        // Fallback: full CSV export
-        return parseSheet(getSheetExportUrl(sheetId));
-      })
+      .catch(() => parseSheet(getSheetExportUrl(sheetId)))
       .then((currentYearAll) => {
         if (abortRef.current) return;
 
-        // Show last 30 days immediately
-        const last30 = filterLastNDays(currentYearAll, 30);
-        const initial = dedupeAndSort(last30.length > 0 ? last30 : currentYearAll.slice(0, 100));
+        // Show last 7 days immediately
+        const last7 = filterLastNDays(currentYearAll, 7);
+        const initial = dedupeAndSort(last7.length > 0 ? last7 : currentYearAll.slice(0, 50));
         setFilings(initial);
         setLastFetched(new Date());
         setLoading(false);
         saveCache(initial);
-        setProgress(p => ({ ...p, loadedSheets: 1, labels: [...p.labels, `${currentYear} (recent)`] }));
+        setProgress(p => ({ ...p, loadedSheets: 1, labels: [`${currentYear} (last 7 days)`] }));
 
-        // Step 2: Show full current year
+        // Step 2: Full current year (already have data, just show all)
         const fullCurrent = dedupeAndSort(currentYearAll);
         setFilings(fullCurrent);
         saveCache(fullCurrent);
         setProgress(p => ({ ...p, loadedSheets: 2, labels: [...p.labels, `${currentYear} (full)`] }));
 
-        // Step 3: Load historical sheets sequentially: 2025, 2024, 2023
-        const historicalYears = [2025, 2024, 2023].filter(y => y !== currentYear);
+        // Step 3: Load historical years in PARALLEL (newest to oldest)
         let accumulated = fullCurrent;
-
-        const loadNext = (index: number) => {
-          if (index >= historicalYears.length || abortRef.current) return;
-          const year = historicalYears[index];
+        const historicalPromises = historicalYears.map(year => {
           const id = SHEET_IDS[year];
-          if (!id) { loadNext(index + 1); return; }
-
-          parseSheet(getSheetExportUrl(id))
+          if (!id) return Promise.resolve({ year, data: [] as ParsedFiling[] });
+          return parseSheet(getSheetExportUrl(id))
             .catch(() => [] as ParsedFiling[])
-            .then(data => {
-              if (abortRef.current) return;
-              accumulated = dedupeAndSort([...accumulated, ...data]);
-              setFilings(accumulated);
-              setProgress(p => ({
-                ...p,
-                loadedSheets: p.loadedSheets + 1,
-                labels: [...p.labels, `${year}`],
-              }));
-              loadNext(index + 1);
-            });
-        };
-        loadNext(0);
+            .then(data => ({ year, data }));
+        });
+
+        historicalPromises.forEach(promise => {
+          promise.then(({ year, data }) => {
+            if (abortRef.current) return;
+            accumulated = dedupeAndSort([...accumulated, ...data]);
+            setFilings(accumulated);
+            setProgress(p => ({
+              ...p,
+              loadedSheets: p.loadedSheets + 1,
+              labels: [...p.labels, `${year}`],
+            }));
+          });
+        });
       })
       .catch((err) => {
         if (abortRef.current) return;

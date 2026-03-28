@@ -99,13 +99,13 @@ export function ChartsTab({ filings, timeframe, onTopicFilter, onDateFilter }: C
 
   const tooltipStyle = {
     contentStyle: {
-      background: '#111',
-      border: '1px solid #222',
+      background: 'hsl(var(--card))',
+      border: '1px solid hsl(var(--border))',
       borderRadius: '8px',
       fontSize: '12px',
-      color: '#f5f5f5',
+      color: 'hsl(var(--foreground))',
     },
-    labelStyle: { color: '#888' },
+    labelStyle: { color: 'hsl(var(--muted-foreground))' },
   };
 
   const timelineTooltipFormatter = (value: number, name: string) => [value, name];
