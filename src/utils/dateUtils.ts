@@ -1,55 +1,84 @@
-function stripLeadingApostrophe(str: string): string {
-  return str.startsWith("'") ? str.slice(1) : str;
+/**
+ * ============================================================
+ * DATE FORMAT REGISTRY
+ * ============================================================
+ * All date formats encountered across the app (Filings, News,
+ * Daily Brief sheets). Update this list when new formats appear.
+ *
+ * FORMAT                        EXAMPLE                   USED IN
+ * ─────────────────────────────────────────────────────────────
+ * 'DD-Mon-YYYY HH:MM:SS        '26-Mar-2026 00:13:11     Filings PubDate
+ * DD-Mon-YYYY HH:MM:SS         26-Mar-2026 00:13:11      Filings PubDate
+ * DD-Mon-YYYY                   26-Mar-2026               Filings, News
+ * Mon/DD/YYYY HH:MM:SS         Mar/25/2026 12:00:00      Filings (Google Sheets auto)
+ * MM/DD/YYYY HH:MM:SS          3/25/2026 00:13:11        Filings PubDate
+ * MM/DD/YYYY                   3/25/2026                 News, Daily Brief
+ * YYYY-MM-DD                   2026-03-24                News, Daily Brief
+ * 'YYYY-MM-DD                  '2026-03-24               Daily Brief (text cell)
+ * 'DD-Mon-YYYY                 '26-Mar-2026              News Extraction_Date
+ *
+ * Leading apostrophe is always stripped before parsing.
+ * All parsers use LOCAL time (no timezone conversion).
+ * ============================================================
+ */
+
+const MONTHS: Record<string, number> = {
+  Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
+  Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11,
+};
+
+function clean(str: string): string {
+  // Strip leading apostrophe(s) and trim whitespace
+  return str.trim().replace(/^'+/, '');
 }
 
+/**
+ * Universal date+time parser — handles every format in the registry.
+ * Returns Date with time if present, midnight otherwise.
+ */
 export function parseDate(str: string): Date | null {
   if (!str) return null;
-  str = stripLeadingApostrophe(str.trim());
-  const months: Record<string, number> = {
-    Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
-    Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11,
-  };
+  str = clean(str);
+
   // DD-Mon-YYYY HH:MM:SS
-  const m = str.match(/(\d{1,2})-([A-Za-z]{3})-(\d{4})\s+(\d{2}):(\d{2}):(\d{2})/);
-  if (m) return new Date(+m[3], months[m[2]], +m[1], +m[4], +m[5], +m[6]);
-  // Mon/DD/YYYY HH:MM:SS (Google Sheets format)
-  const m2 = str.match(/([A-Za-z]{3})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})/);
-  if (m2) return new Date(+m2[3], months[m2[1]], +m2[2], +m2[4], +m2[5], +m2[6]);
+  const a = str.match(/^(\d{1,2})-([A-Za-z]{3})-(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})$/);
+  if (a && MONTHS[a[2]] !== undefined) return new Date(+a[3], MONTHS[a[2]], +a[1], +a[4], +a[5], +a[6]);
+
+  // Mon/DD/YYYY HH:MM:SS
+  const b = str.match(/^([A-Za-z]{3})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})$/);
+  if (b && MONTHS[b[1]] !== undefined) return new Date(+b[3], MONTHS[b[1]], +b[2], +b[4], +b[5], +b[6]);
+
   // MM/DD/YYYY HH:MM:SS
-  const m3 = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})/);
-  if (m3) return new Date(+m3[3], +m3[1] - 1, +m3[2], +m3[4], +m3[5], +m3[6]);
+  const c = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})$/);
+  if (c) return new Date(+c[3], +c[1] - 1, +c[2], +c[4], +c[5], +c[6]);
+
   // DD-Mon-YYYY (no time)
-  const m4 = str.match(/^(\d{1,2})-([A-Za-z]{3})-(\d{4})$/);
-  if (m4) return new Date(+m4[3], months[m4[2]], +m4[1]);
+  const d = str.match(/^(\d{1,2})-([A-Za-z]{3})-(\d{4})$/);
+  if (d && MONTHS[d[2]] !== undefined) return new Date(+d[3], MONTHS[d[2]], +d[1]);
+
   // MM/DD/YYYY (no time)
-  const m5 = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (m5) return new Date(+m5[3], +m5[1] - 1, +m5[2]);
-  // YYYY-MM-DD
-  const m6 = str.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (m6) return new Date(+m6[1], +m6[2] - 1, +m6[3]);
-  // Fallback: try native Date parse
-  const d = new Date(str);
-  if (!isNaN(d.getTime())) return d;
+  const e = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (e) return new Date(+e[3], +e[1] - 1, +e[2]);
+
+  // YYYY-MM-DD (with optional time — ignored for date-only use)
+  const f = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (f) return new Date(+f[1], +f[2] - 1, +f[3]);
+
+  // Fallback: native Date parse
+  const fallback = new Date(str);
+  if (!isNaN(fallback.getTime())) return fallback;
   return null;
 }
 
+/**
+ * Date-only parser (no time component) — used for News & Daily Brief dates.
+ * Delegates to the universal parser for consistency.
+ */
 export function parseExtractionDate(str: string): Date | null {
-  if (!str) return null;
-  str = stripLeadingApostrophe(str.trim());
-  const months: Record<string, number> = {
-    Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
-    Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11,
-  };
-  // DD-Mon-YYYY
-  const dmy = str.match(/(\d{1,2})-([A-Za-z]{3})-(\d{4})/);
-  if (dmy) return new Date(+dmy[3], months[dmy[2]], +dmy[1]);
-  // YYYY-MM-DD
-  const iso = str.match(/(\d{4})-(\d{2})-(\d{2})/);
-  if (iso) return new Date(+iso[1], +iso[2] - 1, +iso[3]);
-  // MM/DD/YYYY
-  const mdy = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (mdy) return new Date(+mdy[3], +mdy[1] - 1, +mdy[2]);
-  return null;
+  const d = parseDate(str);
+  if (!d) return null;
+  // Zero out time for date-only comparisons
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
 export function formatDate(date: Date | null): string {
