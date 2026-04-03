@@ -157,13 +157,14 @@ export function useFilings() {
     const totalSteps = 2 + historicalYears.length; // step1: last 7 days, step2: full current year, rest: historical
     setProgress({ totalSheets: totalSteps, loadedSheets: 0, labels: [] });
 
-    // Step 1: Fetch last 7 days via gviz query for instant display
-    const queryUrl = getGvizQueryUrl(sheetId, sheetName, 'select *');
-
-    fetch(queryUrl)
-      .then(r => { if (!r.ok) throw new Error('Query API failed'); return r.text(); })
-      .then(csvText => parseCSVText(csvText))
-      .catch(() => parseSheet(getSheetExportUrl(sheetId)))
+    // Step 1: Use CSV export (preserves text-formatted dates), gviz as fallback
+    parseSheet(getSheetExportUrl(sheetId))
+      .catch(() => {
+        const queryUrl = getGvizQueryUrl(sheetId, sheetName, 'select *');
+        return fetch(queryUrl)
+          .then(r => { if (!r.ok) throw new Error('Query API failed'); return r.text(); })
+          .then(csvText => parseCSVText(csvText));
+      })
       .then((currentYearAll) => {
         if (abortRef.current) return;
 
