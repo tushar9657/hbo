@@ -138,15 +138,27 @@ export function NewsSection({ articles, readIds, onMarkRead, dailySummaries = []
 
   const dayName = selectedDate ? DAYS[selectedDate.getDay()] : '';
 
-  // Match daily brief to current selected date
-  const currentBrief = useMemo(() => {
-    if (!selectedDate || dailySummaries.length === 0) return null;
-    const selDay = selectedDate.toDateString();
-    const match = dailySummaries.find(s => s._parsedDate?.toDateString() === selDay);
-    return match?.Summary || null;
+  // Match daily brief to current selected date, fallback to latest available
+  const { currentBrief, briefMatchDate } = useMemo(() => {
+    if (dailySummaries.length === 0) return { currentBrief: null, briefMatchDate: null as Date | null };
+    
+    // Try exact match first
+    if (selectedDate) {
+      const selDay = selectedDate.toDateString();
+      const exact = dailySummaries.find(s => s._parsedDate?.toDateString() === selDay);
+      if (exact?.Summary) return { currentBrief: exact.Summary, briefMatchDate: exact._parsedDate };
+    }
+    
+    // Fallback: latest available brief
+    const sorted = [...dailySummaries]
+      .filter(s => s._parsedDate && s.Summary)
+      .sort((a, b) => (b._parsedDate?.getTime() || 0) - (a._parsedDate?.getTime() || 0));
+    if (sorted.length > 0) return { currentBrief: sorted[0].Summary, briefMatchDate: sorted[0]._parsedDate };
+    
+    return { currentBrief: null, briefMatchDate: null as Date | null };
   }, [selectedDate, dailySummaries]);
 
-  const briefDateLabel = selectedDate ? `${formatDateShort(selectedDate)} • ${dayName}` : '';
+  const briefDateLabel = briefMatchDate ? `${formatDateShort(briefMatchDate)} • ${DAYS[briefMatchDate.getDay()]}` : '';
 
   return (
     <div className="max-w-[1408px] mx-auto px-4 py-5">
