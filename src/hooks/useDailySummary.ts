@@ -9,7 +9,8 @@ export interface DailySummary {
 }
 
 const SHEET_ID = '1b7SI9K9ZwvvmO84q84-zbRdIz4saIBW3-vJXk28MLko';
-const DAILY_SUMMARY_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Daily_Summary`;
+const DAILY_SUMMARY_GID = '129417283';
+const DAILY_SUMMARY_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${DAILY_SUMMARY_GID}`;
 
 export function useDailySummary() {
   const [summaries, setSummaries] = useState<DailySummary[]>([]);
